@@ -1,0 +1,288 @@
+@import 'tailwindcss';
+
+/* Self-hosted variable fonts */
+@import '@fontsource-variable/fraunces';
+@import '@fontsource-variable/fraunces/wght-italic.css';
+@import '@fontsource-variable/inter';
+
+/* ---------------------------------------------------------------------------
+   Design tokens: light editorial. One warm accent, warm paper, ink text.
+   These generate Tailwind utilities (bg-paper, text-ink, font-serif, ...).
+--------------------------------------------------------------------------- */
+@theme {
+  --color-paper: #faf9f6;
+  --color-paper-2: #f2f0ea;
+  --color-ink: #191817;
+  --color-ink-soft: #575049;
+  --color-ink-faint: #736c63; /* ≥4.5:1 on paper and paper-2 (WCAG AA) */
+  --color-line: #e6e2d9;
+  --color-accent: #b8472d;
+  --color-accent-soft: #f4e7e1;
+  --color-chip: #fdfcfa;
+
+  /* Footer stays dark in both themes (deeper than the page in dark mode). */
+  --color-footer: #191817;
+  --color-on-footer: #faf9f6;
+
+  /* Terminal is always a dark surface. */
+  --color-term: #1d1b19;
+  --color-term-line: #34302b;
+  --color-term-text: #e9e3d9;
+  --color-term-dim: #948b80;
+  --color-term-accent: #e48a6c;
+  --color-term-green: #a9c18c;
+
+  --font-serif: 'Fraunces Variable', Georgia, 'Times New Roman', serif;
+  --font-sans: 'Inter Variable', system-ui, -apple-system, sans-serif;
+  --font-mono: ui-monospace, 'SF Mono', SFMono-Regular, Menlo, Consolas, monospace;
+
+  /* Editorial type scale (utilities: text-hero, text-display, text-title, text-aside) */
+  --text-hero: clamp(2.6rem, 6.5vw, 5.25rem);
+  --text-hero--line-height: 1.02;
+  --text-display: clamp(2rem, 4vw, 3rem);
+  --text-display--line-height: 1.08;
+  --text-title: clamp(1.3rem, 2.6vw, 2rem);
+  --text-title--line-height: 1.15;
+  --text-aside: clamp(1.2rem, 2.1vw, 1.6rem);
+  --text-aside--line-height: 1.35;
+  --text-aside--letter-spacing: -0.005em;
+}
+
+/* ---------------------------------------------------------------------------
+   Dark theme: warm charcoal. Overrides the same tokens, so every utility
+   (bg-paper, text-ink, ...) flips automatically. `data-theme` is set on <html>
+   by the inline script in BaseLayout before first paint.
+--------------------------------------------------------------------------- */
+@custom-variant dark (&:where([data-theme='dark'], [data-theme='dark'] *));
+
+:root {
+  color-scheme: light;
+}
+
+:root[data-theme='dark'] {
+  color-scheme: dark;
+  --color-paper: #161412;
+  --color-paper-2: #201d1a;
+  --color-ink: #ede8df;
+  --color-ink-soft: #b9b0a4;
+  --color-ink-faint: #928a7e;
+  --color-line: #302b27;
+  --color-accent: #e07a5c;
+  --color-accent-soft: #3b2620;
+  --color-chip: #1d1a17;
+  --color-footer: #0e0d0c;
+  --color-on-footer: #ede8df;
+  --color-term: #0f0e0d;
+  --color-term-line: #2c2824;
+}
+
+/* Theme switch: a 3-segment pill [device | light | dark]
+   (1px border + 1px padding + 3×32px = 100×36). Open, it always sits at the
+   same spot in its reserved slot. Closed, it's clipped down to the active
+   segment and shifted left so that segment always rests in the first slot
+   (next to the nav links); opening slides it back out to its own position.
+   --ti = active segment's index (device 0, light 1, dark 2). */
+:root {
+  --ti: 2;
+}
+:root[data-theme-pref='light'] {
+  --ti: 1;
+}
+:root[data-theme-pref='system'] {
+  --ti: 0;
+}
+.theme-pill {
+  transform: translateX(calc(var(--ti) * -32px));
+  clip-path: inset(2px calc(66px - var(--ti) * 32px) 2px calc(2px + var(--ti) * 32px) round 16px);
+}
+.theme-pill.is-open {
+  transform: none;
+  clip-path: inset(0 round 18px);
+  box-shadow: 0 10px 28px -14px rgb(0 0 0 / 0.35);
+}
+.theme-thumb {
+  transform: translateX(calc(var(--ti) * 32px));
+}
+.theme-pill.is-open .theme-thumb {
+  background-color: var(--color-accent-soft);
+  border-color: var(--color-accent);
+}
+@media (prefers-reduced-motion: no-preference) {
+  .theme-pill {
+    transition:
+      clip-path 0.4s cubic-bezier(0.22, 1, 0.36, 1),
+      transform 0.4s cubic-bezier(0.22, 1, 0.36, 1),
+      box-shadow 0.3s ease;
+  }
+  .theme-thumb {
+    transition:
+      transform 0.35s cubic-bezier(0.22, 1, 0.36, 1),
+      background-color 0.3s ease,
+      border-color 0.3s ease;
+  }
+}
+
+/* Theme switch: circular reveal from the toggle button (View Transitions API).
+   Browsers without it, or users with reduced motion, get an instant swap. */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+
+/* ---------------------------------------------------------------------------
+   Base
+--------------------------------------------------------------------------- */
+@layer base {
+  html {
+    scroll-behavior: smooth;
+    /* Anchor jumps clear the fixed nav (4.25rem tall). The only offset: sections
+       don't add scroll-margin on top of this. */
+    scroll-padding-top: 5rem;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
+  }
+
+  body {
+    background-color: var(--color-paper);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+    font-synthesis-weight: none;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+
+  ::selection {
+    background-color: var(--color-accent);
+    color: var(--color-paper);
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    font-family: var(--font-serif);
+    font-weight: 500;
+    letter-spacing: -0.015em;
+  }
+
+  a {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  /* Visible focus for keyboard users */
+  :focus-visible {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 3px;
+    border-radius: 2px;
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   Reusable editorial primitives
+--------------------------------------------------------------------------- */
+@layer components {
+  /* Small-caps section label */
+  .eyebrow {
+    font-family: var(--font-sans);
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--color-ink-faint);
+  }
+
+  /* Animated underline link */
+  .link-underline {
+    background-image: linear-gradient(var(--color-accent), var(--color-accent));
+    background-position: 0 100%;
+    background-repeat: no-repeat;
+    background-size: 0% 1.5px;
+    transition: background-size 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+    padding-bottom: 1px;
+  }
+  .link-underline:hover,
+  .link-underline:focus-visible {
+    background-size: 100% 1.5px;
+  }
+
+  /* Tech / skill chip */
+  .chip {
+    display: inline-flex;
+    align-items: center;
+    font-size: 0.75rem;
+    line-height: 1;
+    padding: 0.42rem 0.6rem;
+    border: 1px solid var(--color-line);
+    border-radius: 999px;
+    color: var(--color-ink-soft);
+    background-color: var(--color-chip);
+    white-space: nowrap;
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   Scroll reveal: progressive enhancement.
+   Initial hidden state only applies once JS adds `.reveal-ready` to <html>,
+   so no-JS users always see content. Disabled under reduced-motion.
+--------------------------------------------------------------------------- */
+@media (prefers-reduced-motion: no-preference) {
+  .reveal-ready [data-reveal] {
+    opacity: 0;
+    transform: translateY(18px);
+    transition:
+      opacity 0.7s cubic-bezier(0.22, 1, 0.36, 1),
+      transform 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+    transition-delay: var(--reveal-delay, 0ms);
+  }
+  /* Layer hint only while waiting to reveal, not for the life of the page. */
+  .reveal-ready [data-reveal]:not(.is-visible) {
+    will-change: opacity, transform;
+  }
+  .reveal-ready [data-reveal].is-visible {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* Hero entrance: transform only. Above-the-fold content is never hidden, so it
+   paints immediately (an opacity fade would delay Largest Contentful Paint). */
+@media (prefers-reduced-motion: no-preference) {
+  .hero-rise {
+    animation: hero-rise 0.8s cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+}
+@keyframes hero-rise {
+  from {
+    transform: translateY(14px);
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   Project index: animate <details> open/close where supported
+   (interpolate-size + ::details-content). Elsewhere it opens instantly.
+--------------------------------------------------------------------------- */
+@media (prefers-reduced-motion: no-preference) {
+  @supports (interpolate-size: allow-keywords) {
+    .proj-list {
+      interpolate-size: allow-keywords;
+    }
+    .proj-list details::details-content {
+      block-size: 0;
+      overflow: hidden;
+      transition:
+        block-size 0.45s cubic-bezier(0.22, 1, 0.36, 1),
+        content-visibility 0.45s allow-discrete;
+    }
+    .proj-list details[open]::details-content {
+      block-size: auto;
+    }
+  }
+}

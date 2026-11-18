@@ -1,0 +1,19 @@
+---
+// ↗ arrow for links that open elsewhere. Size it with `class`.
+import { ARROW_UP_RIGHT } from '../lib/icons';
+
+interface Props {
+  class?: string;
+}
+const { class: className = 'h-[13px] w-[13px]' } = Astro.props;
+---
+
+<svg viewBox={ARROW_UP_RIGHT.viewBox} fill="none" aria-hidden="true" class={className}>
+  <path
+    d={ARROW_UP_RIGHT.d}
+    stroke="currentColor"
+    stroke-width="1.4"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+  ></path>
+</svg>

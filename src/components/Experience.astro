@@ -1,0 +1,70 @@
+---
+import { experience } from '../data/experience';
+import Reveal from './Reveal.astro';
+import { inlineMarkup } from '../lib/text';
+---
+
+<section id="experience" class="border-t border-line bg-paper-2/40">
+  <div class="mx-auto max-w-6xl px-6 py-20 md:px-10 md:py-28">
+    <Reveal class="mb-14 md:mb-20">
+      <p class="eyebrow">Experience</p>
+      <h2 class="mt-4 max-w-2xl font-serif text-display">
+        Turning research-grade ideas into products people use.
+      </h2>
+    </Reveal>
+
+    <div class="flex flex-col">
+      {experience.map((job, i) => (
+        <Reveal
+          class={`grid gap-6 border-t border-line py-10 md:grid-cols-[0.8fr_2fr] md:gap-12 md:py-14 ${i === 0 ? 'border-t-2 border-t-ink/80' : ''}`}
+        >
+          {/* Left rail: company + timeline */}
+          <div>
+            <div class="flex items-baseline justify-between gap-4">
+              <h3 class="font-serif text-2xl text-ink">
+                {job.url ? (
+                  <a
+                    href={job.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="link-underline"
+                  >
+                    {job.company}
+                  </a>
+                ) : (
+                  job.company
+                )}
+              </h3>
+              <span class="shrink-0 text-sm text-ink-faint">{job.period}</span>
+            </div>
+            <p class="mt-1 text-sm text-ink-faint">{job.location}</p>
+
+            <ul class="mt-5 space-y-2.5">
+              {job.roles.map((r) => (
+                <li class="flex flex-col">
+                  <span class="text-[0.95rem] font-medium text-ink">{r.title}</span>
+                  {r.period && <span class="text-xs text-ink-faint">{r.period}</span>}
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          {/* Right: narrative */}
+          <div>
+            <div class="max-w-2xl space-y-4 text-[1.05rem] leading-relaxed text-ink-soft">
+              {job.about.map((para) => (
+                <p set:html={inlineMarkup(para)} />
+              ))}
+            </div>
+
+            <ul class="mt-7 flex flex-wrap gap-2">
+              {job.stack.map((t) => (
+                <li class="chip">{t}</li>
+              ))}
+            </ul>
+          </div>
+        </Reveal>
+      ))}
+    </div>
+  </div>
+</section>

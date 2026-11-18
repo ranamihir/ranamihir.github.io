@@ -1,0 +1,26 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { site } from '../data/site';
+---
+
+<BaseLayout title={`Page not found · ${site.name}`} description="This page doesn’t exist." noindex>
+  <main class="mx-auto flex min-h-dvh max-w-3xl flex-col justify-center px-6 py-24 md:px-10">
+    <p class="eyebrow">Error 404</p>
+    <h1 class="mt-6 font-serif text-hero text-ink">
+      Nothing <span class="text-accent italic">here.</span>
+    </h1>
+    <p class="mt-6 max-w-xl text-[1.05rem] leading-relaxed text-ink-soft">
+      The page you’re looking for doesn’t exist, or it moved. The rest of the site is one click
+      away.
+    </p>
+    <p class="mt-10 font-mono text-sm text-ink-soft">
+      <span class="text-accent" aria-hidden="true">
+        $
+      </span>{' '}
+      cd
+      <a href="/" class="link-underline text-ink">
+        ~/{site.name.split(' ')[0].toLowerCase()}
+      </a>
+    </p>
+  </main>
+</BaseLayout>

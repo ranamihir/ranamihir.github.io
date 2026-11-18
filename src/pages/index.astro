@@ -1,0 +1,48 @@
+---
+import { getImage } from 'astro:assets';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Nav from '../components/Nav.astro';
+import Hero from '../components/Hero.astro';
+import Terminal from '../components/Terminal.astro';
+import Experience from '../components/Experience.astro';
+import Projects from '../components/Projects.astro';
+import Footer from '../components/Footer.astro';
+import { site, education } from '../data/site';
+import { experience } from '../data/experience';
+
+// schema.org Person, for search engines and link unfurlers.
+const current = experience[0];
+const photo = await getImage({ src: site.portrait, width: 768, format: 'jpg' });
+const person = {
+  '@context': 'https://schema.org',
+  '@type': 'Person',
+  name: site.name,
+  url: Astro.site!.href,
+  image: new URL(photo.src, Astro.site).href,
+  jobTitle: current.roles[0].title,
+  worksFor: { '@type': 'Organization', name: current.company, url: current.url },
+  alumniOf: education.map((e) => ({ '@type': 'CollegeOrUniversity', name: e.school })),
+  sameAs: site.socials.map((s) => s.url),
+};
+const personJson = JSON.stringify(person).replace(/</g, '\\u003c');
+---
+
+<BaseLayout>
+  <script slot="head" type="application/ld+json" set:html={personJson} />
+  <span id="top" aria-hidden="true"></span>
+  <a
+    href="#main"
+    class="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-[60] focus:rounded-full focus:bg-ink focus:px-4 focus:py-2 focus:text-sm focus:text-paper"
+  >
+    Skip to content
+  </a>
+  <Nav />
+  <main id="main" tabindex="-1" class="outline-none">
+    <Hero />
+    <Experience />
+    <Projects />
+    <!-- The hero's "Prefer a terminal?" link jumps here. -->
+    <Terminal />
+  </main>
+  <Footer />
+</BaseLayout>

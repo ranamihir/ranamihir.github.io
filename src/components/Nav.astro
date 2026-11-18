@@ -1,0 +1,263 @@
+---
+import { site } from '../data/site';
+import { DEFAULT_THEME_PREF, type ThemePref } from '../lib/theme';
+
+const links = [
+  { label: 'About', href: '#about' },
+  { label: 'Experience', href: '#experience' },
+  { label: 'Projects', href: '#projects' },
+  { label: 'Contact', href: '#contact' },
+];
+
+// Left-to-right order in the pill (default Dark sits at the right edge).
+const themes: { pref: ThemePref; label: string }[] = [
+  { pref: 'system', label: 'Match device theme' },
+  { pref: 'light', label: 'Light theme' },
+  { pref: 'dark', label: 'Dark theme' },
+];
+---
+
+<header id="site-nav" class="fixed inset-x-0 top-0 z-50 transition-colors duration-300">
+  <nav class="mx-auto flex max-w-6xl items-center justify-between px-6 py-4 md:px-10">
+    <a
+      href="#top"
+      class="group inline-flex items-center gap-2.5 text-[0.95rem] font-medium tracking-tight"
+      aria-label={`${site.name}, home`}
+    >
+      <span
+        class="grid h-8 w-8 place-items-center rounded-full border border-line font-serif text-[0.8rem] text-ink transition-colors group-hover:border-accent group-hover:text-accent"
+        aria-hidden="true"
+      >
+        MR
+      </span>
+      <span class="hidden sm:inline">{site.name}</span>
+    </a>
+
+    <div class="flex items-center gap-2 md:gap-5">
+      <!-- Desktop links -->
+      <div class="hidden items-center gap-8 md:flex">
+        {links.map((l) => (
+          <a href={l.href} class="link-underline text-sm text-ink-soft hover:text-ink">
+            {l.label}
+          </a>
+        ))}
+      </div>
+
+      <!-- Theme switch. Closed: one round button showing the current theme;
+           click cycles Dark → Light → Device. It always rests in the first slot;
+           hovering with a mouse (or tabbing in) slides open the full
+           [device | light | dark] pill, which always opens in the same place.
+           Full width is reserved on desktop only. Geometry: global.css (.theme-pill). -->
+      <div id="theme-switch" class="relative h-8 w-8 shrink-0 md:w-[100px]">
+        <div
+          id="theme-pill"
+          role="group"
+          aria-label="Theme"
+          class="theme-pill absolute -top-0.5 -left-0.5 z-10 flex md:left-0 h-9 w-[100px] rounded-full border border-line bg-paper p-px"
+        >
+          <span
+            class="theme-thumb pointer-events-none absolute top-px left-px h-8 w-8 rounded-full border border-line bg-chip"
+            aria-hidden="true"
+          ></span>
+          {themes.map((t) => (
+            <button
+              type="button"
+              data-pref={t.pref}
+              aria-label={t.label}
+              aria-pressed={t.pref === DEFAULT_THEME_PREF ? 'true' : 'false'}
+              title={t.label}
+              class="group relative grid h-8 w-8 place-items-center rounded-full text-ink-faint transition-colors hover:text-accent aria-pressed:text-ink aria-pressed:hover:text-accent"
+            >
+              {t.pref === 'dark' && (
+                <svg
+                  class="h-[16px] w-[16px] transition-transform duration-500 group-hover:-rotate-12"
+                  viewBox="0 0 20 20"
+                  fill="none"
+                  aria-hidden="true"
+                >
+                  <path
+                    d="M16.5 12.3A7 7 0 0 1 7.7 3.5a7 7 0 1 0 8.8 8.8Z"
+                    stroke="currentColor"
+                    stroke-width="1.5"
+                    stroke-linejoin="round"
+                  />
+                </svg>
+              )}
+              {t.pref === 'light' && (
+                <svg
+                  class="h-[17px] w-[17px] transition-transform duration-500 group-hover:rotate-45"
+                  viewBox="0 0 20 20"
+                  fill="none"
+                  aria-hidden="true"
+                >
+                  <circle cx="10" cy="10" r="3.4" stroke="currentColor" stroke-width="1.5" />
+                  <path
+                    d="M10 1.8v2M10 16.2v2M1.8 10h2M16.2 10h2M4.2 4.2l1.4 1.4M14.4 14.4l1.4 1.4M4.2 15.8l1.4-1.4M14.4 5.6l1.4-1.4"
+                    stroke="currentColor"
+                    stroke-width="1.5"
+                    stroke-linecap="round"
+                  />
+                </svg>
+              )}
+              {t.pref === 'system' && (
+                <svg class="h-[16px] w-[16px]" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                  <rect
+                    x="2.5"
+                    y="3.5"
+                    width="15"
+                    height="10"
+                    rx="1.8"
+                    stroke="currentColor"
+                    stroke-width="1.5"
+                  />
+                  <path
+                    d="M7 17h6M10 13.5V17"
+                    stroke="currentColor"
+                    stroke-width="1.5"
+                    stroke-linecap="round"
+                  />
+                </svg>
+              )}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <!-- Mobile toggle -->
+      <button
+        id="nav-toggle"
+        type="button"
+        class="md:hidden -mr-1 inline-flex h-9 w-9 items-center justify-center rounded-full text-ink"
+        aria-label="Toggle menu"
+        aria-expanded="false"
+        aria-controls="mobile-menu"
+      >
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+          <path
+            d="M3 6h14M3 10h14M3 14h14"
+            stroke="currentColor"
+            stroke-width="1.6"
+            stroke-linecap="round"
+          />
+        </svg>
+      </button>
+    </div>
+  </nav>
+
+  <!-- Mobile menu -->
+  <div id="mobile-menu" class="hidden border-t border-line bg-paper/95 backdrop-blur md:hidden">
+    <div class="mx-auto flex max-w-6xl flex-col gap-1 px-6 py-4">
+      {links.map((l) => (
+        <a
+          href={l.href}
+          class="rounded-lg px-2 py-2.5 text-base text-ink-soft hover:bg-paper-2 hover:text-ink"
+          data-mobile-link
+        >
+          {l.label}
+        </a>
+      ))}
+    </div>
+  </div>
+</header>
+
+<script>
+  import {
+    THEME_CHANGE_EVENT,
+    followDeviceTheme,
+    getThemePref,
+    isThemePref,
+    nextThemePref,
+    setTheme,
+  } from '../lib/theme';
+
+  const nav = document.getElementById('site-nav')!;
+  const toggle = document.getElementById('nav-toggle')!;
+  const menu = document.getElementById('mobile-menu')!;
+
+  // Frosted background + hairline once scrolled past the hero top.
+  const onScroll = () => {
+    const scrolled = window.scrollY > 12;
+    nav.classList.toggle('bg-paper/80', scrolled);
+    nav.classList.toggle('backdrop-blur', scrolled);
+    nav.classList.toggle('border-b', scrolled);
+    nav.classList.toggle('border-line', scrolled);
+  };
+  onScroll();
+  window.addEventListener('scroll', onScroll, { passive: true });
+
+  // Mobile menu open/close
+  const closeMenu = () => {
+    menu.classList.add('hidden');
+    toggle.setAttribute('aria-expanded', 'false');
+  };
+  toggle.addEventListener('click', () => {
+    const open = menu.classList.toggle('hidden');
+    toggle.setAttribute('aria-expanded', String(!open));
+  });
+  menu
+    .querySelectorAll('[data-mobile-link]')
+    .forEach((a) => a.addEventListener('click', closeMenu));
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && toggle.getAttribute('aria-expanded') === 'true') {
+      closeMenu();
+      toggle.focus();
+    }
+  });
+
+  // ---- theme switch ----------------------------------------------------------
+  const root = document.documentElement;
+  const pill = document.getElementById('theme-pill')!;
+  const themeOpts = Array.from(pill.querySelectorAll<HTMLButtonElement>('[data-pref]'));
+
+  const syncThemeUI = () => {
+    const pref = getThemePref();
+    themeOpts.forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.pref === pref)));
+  };
+  syncThemeUI();
+  root.addEventListener(THEME_CHANGE_EVENT, syncThemeUI);
+  followDeviceTheme();
+
+  // Open/close the pill (it never moves; only its clip changes).
+  let closeTimer = 0;
+  const openPill = () => {
+    clearTimeout(closeTimer);
+    pill.classList.add('is-open');
+  };
+  const closePill = () => {
+    clearTimeout(closeTimer);
+    pill.classList.remove('is-open');
+  };
+
+  pill.addEventListener('pointerenter', (e) => {
+    if (e.pointerType === 'mouse') openPill();
+  });
+  pill.addEventListener('pointerleave', (e) => {
+    if (e.pointerType !== 'mouse') return;
+    // Stay open if a keyboard user is focused inside.
+    closeTimer = window.setTimeout(() => {
+      if (!pill.querySelector(':focus-visible')) closePill();
+    }, 140);
+  });
+  pill.addEventListener('focusin', (e) => {
+    if ((e.target as Element).matches(':focus-visible')) openPill();
+  });
+  pill.addEventListener('focusout', (e) => {
+    if (!pill.contains(e.relatedTarget as Node | null)) closePill();
+  });
+  pill.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') closePill();
+  });
+
+  // Clicking the current option cycles; clicking another selects it.
+  themeOpts.forEach((b) =>
+    b.addEventListener('click', () => {
+      const cur = getThemePref();
+      const picked = isThemePref(b.dataset.pref) ? b.dataset.pref : cur;
+      const rect = b.getBoundingClientRect();
+      setTheme(picked === cur ? nextThemePref(cur) : picked, {
+        x: rect.left + rect.width / 2,
+        y: rect.top + rect.height / 2,
+      });
+    }),
+  );
+</script>
