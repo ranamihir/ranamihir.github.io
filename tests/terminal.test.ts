@@ -62,14 +62,19 @@ const text = (lines: Line[]) => lines.map((l) => l.map((s) => s.text).join('')).
 
 let shell: Shell;
 let theme: ThemePref;
+let heroLr: number | undefined;
 
 beforeEach(() => {
   theme = 'dark';
+  heroLr = undefined;
   shell = createShell(data, {
     decodeEmail: () => 'ada@example.com',
     getThemePref: () => theme,
     setTheme: (pref) => {
       theme = pref;
+    },
+    setLearningRate: (lr) => {
+      heroLr = lr;
     },
     now: () => new Date(0),
   });
@@ -139,6 +144,17 @@ describe('run', () => {
     expect(text(shell.run('cat skills.txt').lines)).toContain('Python');
     expect(text(shell.run('ls -la').lines)).toContain('.secret');
     expect(text(shell.run('cat nope.txt').lines)).toContain('No such file or directory');
+  });
+
+  it('sets the hero learning rate', () => {
+    expect(text(shell.run('lr').lines)).toContain('learning rate: 0.03');
+    expect(text(shell.run('lr 10').lines)).toContain('Diverging');
+    expect(heroLr).toBe(10);
+    expect(text(shell.run('lr').lines)).toContain('learning rate: 10');
+    shell.run('lr reset');
+    expect(heroLr).toBe(0.03);
+    expect(text(shell.run('lr banana').lines)).toContain('pick a number');
+    expect(heroLr).toBe(0.03);
   });
 
   it('signals clear', () => {

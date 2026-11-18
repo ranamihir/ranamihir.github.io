@@ -3,6 +3,7 @@
 // (src/components/Terminal.astro) renders the lines and handles input.
 
 import type { TextSegment } from './text';
+import { DEFAULT_LR, LR_RANGE } from './descent';
 import { isThemePref, nextThemePref, THEME_PREFS, type ThemePref } from './theme';
 
 // ---- data -------------------------------------------------------------------
@@ -115,6 +116,8 @@ export interface ShellDeps {
   decodeEmail: (token: string) => string;
   getThemePref: () => ThemePref;
   setTheme: (pref: ThemePref) => void;
+  /** Sets the learning rate of the gradient descent behind the hero. */
+  setLearningRate?: (lr: number) => void;
   now?: () => Date;
 }
 
@@ -148,10 +151,14 @@ export function createShell(data: TerminalData, deps: ShellDeps) {
     ['contact', 'how to reach me'],
     ['fun-facts', 'things a résumé won’t tell you'],
     ['theme [dark|light|system]', 'switch the site theme'],
+    ['lr [value|reset]', 'tune the optimizer up top'],
     ['ls, cat, history, clear', 'the usual'],
   ];
 
   type Command = (args: string[]) => Line[] | 'clear';
+  let heroLr = DEFAULT_LR;
+  /** 0.001 → "1e-3", 0.25 → "0.25". */
+  const fmtLr = (x: number) => (x < 0.01 ? x.toExponential() : `${x}`);
 
   const commands: Record<string, Command> = {
     help: () => [
@@ -264,6 +271,32 @@ export function createShell(data: TerminalData, deps: ShellDeps) {
       deps.setTheme(want);
       return [L(dim('theme set to '), acc(want === 'system' ? 'system (match device)' : want))];
     },
+    lr: (args) => {
+      if (!deps.setLearningRate) return [L('lr: nothing to optimize here.')];
+      if (!args[0])
+        return [
+          L(dim('learning rate: '), acc(fmtLr(heroLr)), dim(` (default ${fmtLr(DEFAULT_LR)})`)),
+          L(dim('usage: lr <value> | lr reset   try '), acc('lr 1'), dim(' or '), acc('lr 0.001')),
+        ];
+      const want = args[0].toLowerCase() === 'reset' ? DEFAULT_LR : Number(args[0]);
+      const [lo, hi] = LR_RANGE;
+      if (!Number.isFinite(want) || want < lo || want > hi)
+        return [L(`lr: pick a number between ${fmtLr(lo)} and ${hi}`)];
+      heroLr = want;
+      deps.setLearningRate(want);
+      const quip =
+        want >= 1
+          ? 'Diverging. Gradient clipping is the only thing keeping it on screen.'
+          : want >= 0.3
+            ? 'Bit jumpy. It might settle down.'
+            : want < 0.003
+              ? 'It’ll get there. Eventually.'
+              : 'Nice and steady.';
+      return [
+        L(dim('learning rate set to '), acc(fmtLr(want)), dim('. '), quip),
+        L(dim('Watch it at the '), a('top of the page', '#about'), dim('.')),
+      ];
+    },
     ls: (args) => {
       const all = args.some((x) => x.startsWith('-') && x.includes('a'));
       if (args.includes('projects') || args.includes('projects/')) return commands.projects([]);
@@ -331,6 +364,7 @@ export function createShell(data: TerminalData, deps: ShellDeps) {
     'contact',
     'fun-facts',
     'theme',
+    'lr',
     'ls',
     'cat',
     'history',
@@ -342,6 +376,7 @@ export function createShell(data: TerminalData, deps: ShellDeps) {
     cat: Object.keys(files).filter((f) => !f.endsWith('/')),
     ls: ['projects/'],
     theme: [...THEME_PREFS],
+    lr: ['reset'],
     experience: data.experience.map((e) => e.slug),
     projects: data.projects.map((p) => p.slug),
     education: data.education.map((e) => e.slug),
