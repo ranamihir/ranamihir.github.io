@@ -1,0 +1,87 @@
+---
+import '../styles/global.css';
+import { site } from '../data/site';
+import { experience } from '../data/experience';
+import { DEFAULT_THEME_PREF, THEME_COLOR } from '../lib/theme';
+import { THEME_INIT_SCRIPT } from '../lib/theme-init';
+// Above-the-fold faces (hero heading + body), preloaded so text doesn't swap in late.
+import serifLatin from '@fontsource-variable/source-serif-4/files/source-serif-4-latin-wght-normal.woff2?url';
+import interLatin from '@fontsource-variable/inter/files/inter-latin-wght-normal.woff2?url';
+
+interface Props {
+  title?: string;
+  description?: string;
+  /** Keep the page out of search results (e.g. the 404 page). */
+  noindex?: boolean;
+}
+
+const current = experience[0];
+const {
+  title = `${site.name} · ${current.roles[0].title} at ${current.company}`,
+  description = `${site.name} works on machine learning at ${current.company}, building ranking, recommender, computer vision, and LLM systems.`,
+  noindex = false,
+} = Astro.props;
+
+const canonical = new URL(Astro.url.pathname, Astro.site).toString();
+const ogImage = new URL('/og-image.jpg', Astro.site).toString();
+const ogImageAlt = `${site.name}: ${site.role}, ${Astro.site!.hostname}`;
+---
+
+<!doctype html>
+<html lang="en" data-theme={DEFAULT_THEME_PREF} data-theme-pref={DEFAULT_THEME_PREF}>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="generator" content={Astro.generator} />
+
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <meta name="author" content={site.name} />
+    <meta name="referrer" content="strict-origin-when-cross-origin" />
+    {noindex ? <meta name="robots" content="noindex" /> : <link rel="canonical" href={canonical} />}
+
+    <link rel="preload" href={serifLatin} as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href={interLatin} as="font" type="font/woff2" crossorigin />
+
+    <!-- Icons -->
+    <link rel="icon" href="/favicon.ico" sizes="48x48" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content={site.name} />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:image" content={ogImage} />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:type" content="image/jpeg" />
+    <meta property="og:image:alt" content={ogImageAlt} />
+
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={ogImage} />
+    <meta name="twitter:image:alt" content={ogImageAlt} />
+
+    <meta name="theme-color" content={THEME_COLOR.dark} />
+    <slot name="head" />
+  </head>
+  <body>
+    <!-- Theme before first paint + reveal initial state (src/lib/theme-init.ts).
+         First in <body> rather than in <head> so it comes after Astro's CSP
+         <meta>, which lists its hash; it still runs before any content paints. -->
+    <script is:inline set:html={THEME_INIT_SCRIPT} />
+    <slot />
+
+    <script>
+      import { revealEmails } from '../lib/email';
+      import { initReveal } from '../lib/reveal';
+      initReveal();
+      revealEmails();
+    </script>
+  </body>
+</html>

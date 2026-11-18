@@ -1,0 +1,368 @@
+---
+// Interactive "about me" terminal. Content is pulled from src/data so it stays
+// in sync with the rest of the page. The shell itself (commands, completion)
+// lives in src/lib/terminal.ts; the client script below renders and handles input.
+import { site, education, skills } from '../data/site';
+import { experience } from '../data/experience';
+import { projects } from '../data/projects';
+import { plain, segments } from '../lib/text';
+import { encodeEmail } from '../lib/email';
+import { acronym, slugify, type TerminalData } from '../lib/terminal';
+import Reveal from './Reveal.astro';
+
+const data: TerminalData = {
+  name: site.name,
+  role: site.role,
+  location: site.location,
+  email: encodeEmail(site.email), // decoded client-side
+  bio: site.bio.map(plain),
+  funFacts: [...site.funFacts],
+  socials: site.socials.map((s) => ({ label: s.label, url: s.url })),
+  experience: experience.map((e) => ({
+    slug: slugify(e.company),
+    company: e.company,
+    title: e.roles.map((r) => r.title).join(', '),
+    period: e.period,
+    location: e.location,
+    url: e.url,
+    about: e.about.map(segments),
+    stack: e.stack,
+  })),
+  projects: projects.map((p) => ({
+    slug: slugify(p.title),
+    title: p.title,
+    year: p.year,
+    blurb: p.blurb,
+    stack: p.stack,
+    code: p.code,
+    demo: p.demo,
+  })),
+  education: education.map((e) => ({
+    slug: acronym(e.school),
+    school: e.school,
+    degree: e.degree,
+    period: e.period,
+    location: e.location,
+    detail: e.detail,
+    coursework: [...e.coursework],
+  })),
+  skills: skills.map((s) => ({ group: s.group, items: [...s.items] })),
+};
+// Safe to embed in <script type="application/json">.
+const json = JSON.stringify(data).replace(/</g, '\\u003c');
+
+const chips = [
+  'help',
+  'whoami',
+  'experience',
+  'projects',
+  'education',
+  'fun-facts',
+  'contact',
+  'theme',
+];
+---
+
+<section id="terminal" class="border-t border-line">
+  <div class="mx-auto max-w-6xl px-6 py-20 md:px-10 md:py-28">
+    <div class="grid gap-10">
+      <Reveal>
+        <p class="eyebrow">Terminal</p>
+        <h2 class="mt-4 font-serif text-display">Prefer the command line?</h2>
+        <p class="mt-5 max-w-xl text-[1.05rem] leading-relaxed text-ink-soft">
+          Everything on this page, as a tiny shell. Type{' '}
+          <code class="font-mono text-[0.92em] text-ink">help</code> to get started, or tap a
+          command below.
+        </p>
+      </Reveal>
+
+      <Reveal delay={100}>
+        <div
+          id="term"
+          class="overflow-hidden rounded-2xl border border-term-line bg-term outline-offset-4 focus-within:outline-2 focus-within:outline-accent font-mono text-[0.84rem] leading-relaxed text-term-text shadow-[0_24px_60px_-28px_rgba(25,24,23,0.45)] md:text-[0.88rem]"
+        >
+          <!-- Window chrome -->
+          <div class="flex items-center gap-2 border-b border-term-line px-4 py-3">
+            <span class="h-3 w-3 rounded-full bg-[#e0715a]" aria-hidden="true"></span>
+            <span class="h-3 w-3 rounded-full bg-[#e2b45c]" aria-hidden="true"></span>
+            <span class="h-3 w-3 rounded-full bg-[#8fb57a]" aria-hidden="true"></span>
+            <span class="flex-1 pr-12 text-center text-xs text-term-dim">visitor@mihir: ~</span>
+          </div>
+
+          <!-- Scrollback + prompt -->
+          <div id="term-body" class="h-[26rem] overflow-y-auto px-4 py-4 md:h-[32rem] md:px-5">
+            <div id="term-out" role="log" aria-live="polite" aria-label="Terminal output">
+              <p>
+                <span class="text-term-accent">mihir.sh</span>{' '}
+                <span class="text-term-dim">v1.0: an interactive about-me</span>
+              </p>
+              <p class="text-term-dim">
+                Type <span class="text-term-text">help</span> to see available commands.
+              </p>
+              <p>&nbsp;</p>
+            </div>
+            <form id="term-form" class="flex items-baseline gap-2" autocomplete="off">
+              <label for="term-input" class="shrink-0 select-none">
+                <span class="text-term-green">visitor@mihir</span>
+                <span class="text-term-dim">:</span>
+                <span class="text-term-accent">~</span>
+                <span class="text-term-dim">$</span>
+              </label>
+              <!-- Input with fish/iTerm-style ghost suggestion layered underneath -->
+              <div class="relative min-w-0 flex-1">
+                <span
+                  aria-hidden="true"
+                  class="pointer-events-none absolute inset-0 overflow-hidden whitespace-pre"
+                >
+                  <span id="term-typed" class="invisible"></span>
+                  <span id="term-ghost" class="text-term-dim"></span>
+                </span>
+                <input
+                  id="term-input"
+                  type="text"
+                  disabled
+                  spellcheck="false"
+                  autocapitalize="off"
+                  autocorrect="off"
+                  enterkeyhint="send"
+                  aria-label="Terminal command"
+                  aria-describedby="term-hint"
+                  placeholder="type a command"
+                  class="relative w-full bg-transparent text-term-text caret-term-accent outline-none placeholder:text-term-dim focus-visible:outline-none"
+                />
+              </div>
+              <span id="term-hint" class="sr-only">
+                Suggestions appear inline; press Tab or Right Arrow to accept.
+              </span>
+            </form>
+          </div>
+        </div>
+
+        <!-- Command chips (also the only input method most phone users will try) -->
+        <!-- Equal-width grid: 8 chips → 1 row on lg, 4×2 on sm, 2×4 on phones. Never orphans one. -->
+        <div
+          class="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-4 lg:grid-cols-8"
+          role="group"
+          aria-label="Suggested commands"
+        >
+          {chips.map((c) => (
+            <button
+              type="button"
+              data-cmd={c}
+              class="truncate whitespace-nowrap rounded-full border border-line bg-chip px-2 py-1.5 text-center font-mono text-xs text-ink-soft transition-colors hover:border-accent hover:text-ink"
+            >
+              {c}
+            </button>
+          ))}
+        </div>
+      </Reveal>
+    </div>
+  </div>
+  <script type="application/json" id="terminal-data" set:html={json} />
+</section>
+
+<script>
+  import { decodeEmail } from '../lib/email';
+  import { createShell, promptLine, type Line, type TerminalData } from '../lib/terminal';
+  import { getThemePref, setTheme } from '../lib/theme';
+
+  const data: TerminalData = JSON.parse(document.getElementById('terminal-data')!.textContent!);
+  const term = document.getElementById('term')!;
+  const body = document.getElementById('term-body')!;
+  const out = document.getElementById('term-out')!;
+  const form = document.getElementById('term-form') as HTMLFormElement;
+  const input = document.getElementById('term-input') as HTMLInputElement;
+  const typedEl = document.getElementById('term-typed')!;
+  const ghostEl = document.getElementById('term-ghost')!;
+
+  const shell = createShell(data, {
+    decodeEmail,
+    getThemePref,
+    // The reveal animation grows from the prompt.
+    setTheme: (pref) => {
+      const r = input.getBoundingClientRect();
+      setTheme(pref, { x: r.left + 40, y: r.top + r.height / 2 });
+    },
+  });
+
+  // ---- output --------------------------------------------------------------
+  const render = (lines: Line[]) => {
+    const frag = document.createDocumentFragment();
+    for (const line of lines) {
+      const p = document.createElement('p');
+      p.className = 'whitespace-pre-wrap break-words';
+      for (const seg of line) {
+        const el = document.createElement(seg.href ? 'a' : 'span');
+        el.textContent = seg.text;
+        if (seg.cls) el.className = seg.cls;
+        if (seg.href && el instanceof HTMLAnchorElement) {
+          el.href = seg.href;
+          if (seg.href.startsWith('http')) {
+            el.target = '_blank';
+            el.rel = 'noopener noreferrer';
+          }
+        }
+        p.appendChild(el);
+      }
+      frag.appendChild(p);
+    }
+    out.appendChild(frag);
+    body.scrollTop = body.scrollHeight;
+  };
+
+  const run = (raw: string) => {
+    render([promptLine(raw.trim())]);
+    const { lines, clear } = shell.run(raw);
+    if (clear) out.replaceChildren();
+    else render(lines);
+  };
+
+  // A row of names (Tab listings).
+  const listing = (names: string[], cls?: string): Line[] => [
+    names.flatMap((n) => [{ text: n, cls }, { text: '  ' }]),
+    [{ text: ' ' }],
+  ];
+
+  // ---- inline suggestion (ghost text) ---------------------------------------
+  let suggestion = '';
+
+  const updateGhost = () => {
+    const v = input.value;
+    const atEnd = input.selectionStart === null || input.selectionStart === v.length;
+    suggestion = atEnd ? shell.suggest(v) : '';
+    typedEl.textContent = v;
+    ghostEl.textContent = suggestion ? suggestion.slice(v.length) : '';
+  };
+
+  const acceptGhost = () => {
+    if (!suggestion) return false;
+    // Bare commands that take an argument get a trailing space, ready for it.
+    input.value = suggestion + (shell.takesArgument(suggestion) ? ' ' : '');
+    updateGhost();
+    return true;
+  };
+
+  // ---- input handling ------------------------------------------------------
+  const { history } = shell;
+  let histIdx = -1;
+  let emptyTabs = 0;
+  let autoplay: number | undefined;
+  const stopAutoplay = () => {
+    if (autoplay !== undefined) {
+      clearInterval(autoplay);
+      autoplay = undefined;
+      input.value = '';
+      updateGhost();
+    }
+  };
+
+  input.disabled = false;
+  // Typing, deleting, and caret moves (clicks, arrow keys) all refresh the ghost.
+  input.addEventListener('input', updateGhost);
+  input.addEventListener('keyup', updateGhost);
+  input.addEventListener('click', updateGhost);
+
+  form.addEventListener('submit', (e) => {
+    e.preventDefault();
+    stopAutoplay();
+    run(input.value);
+    input.value = '';
+    histIdx = -1;
+    updateGhost();
+  });
+
+  input.addEventListener('keydown', (e) => {
+    stopAutoplay();
+    if (e.key !== 'Tab') emptyTabs = 0;
+    if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
+      if (!history.length) return;
+      e.preventDefault();
+      histIdx =
+        e.key === 'ArrowUp'
+          ? histIdx < 0
+            ? history.length - 1
+            : Math.max(0, histIdx - 1)
+          : histIdx < 0
+            ? -1
+            : histIdx + 1;
+      if (histIdx >= history.length) histIdx = -1;
+      input.value = histIdx < 0 ? '' : history[histIdx];
+      updateGhost();
+    } else if (e.key === 'Tab' && !e.shiftKey && !e.altKey && !e.metaKey && !e.ctrlKey) {
+      const v = input.value;
+      // Empty prompt: first Tab lists commands, a second Tab moves focus on
+      // as usual (so keyboard users are never trapped in the terminal).
+      if (!v.trim()) {
+        if (emptyTabs++ > 0) return;
+        e.preventDefault();
+        render([promptLine(v), ...listing(shell.visible, 'text-term-accent')]);
+        return;
+      }
+      e.preventDefault();
+      if (acceptGhost()) return;
+      const done = shell.complete(v);
+      if (done.value !== v) {
+        input.value = done.value;
+        updateGhost();
+      } else if (done.hits.length > 1) {
+        render([promptLine(v), ...listing(done.hits)]);
+      }
+    } else if (
+      e.key === 'ArrowRight' &&
+      suggestion &&
+      input.selectionStart === input.value.length
+    ) {
+      e.preventDefault();
+      acceptGhost();
+    } else if (e.key === 'l' && e.ctrlKey) {
+      e.preventDefault();
+      out.replaceChildren();
+    }
+  });
+
+  // Click anywhere in the window to focus, unless selecting text or clicking a link.
+  term.addEventListener('click', (e) => {
+    if ((e.target as HTMLElement).closest('a')) return;
+    if (window.getSelection()?.toString()) return;
+    input.focus({ preventScroll: true });
+  });
+
+  document.querySelectorAll<HTMLButtonElement>('[data-cmd]').forEach((btn) =>
+    btn.addEventListener('click', () => {
+      stopAutoplay();
+      run(btn.dataset.cmd!);
+    }),
+  );
+
+  // ---- autoplay: type `whoami` once the terminal scrolls into view ---------
+  const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const io = new IntersectionObserver(
+    (entries) => {
+      if (!entries[0].isIntersecting) return;
+      io.disconnect();
+      if (history.length) return; // visitor already got there first
+      const cmd = 'whoami';
+      if (reduced) return run(cmd);
+      let i = 0;
+      setTimeout(() => {
+        if (history.length || (document.activeElement === input && input.value)) return;
+        autoplay = window.setInterval(() => {
+          input.value = cmd.slice(0, ++i);
+          updateGhost();
+          if (i === cmd.length) {
+            clearInterval(autoplay);
+            autoplay = undefined;
+            setTimeout(() => {
+              if (input.value !== cmd) return;
+              input.value = '';
+              updateGhost();
+              run(cmd);
+            }, 350);
+          }
+        }, 90);
+      }, 600);
+    },
+    { threshold: 0.6 },
+  );
+  io.observe(term);
+</script>

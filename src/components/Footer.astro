@@ -1,0 +1,72 @@
+---
+import { site, education, skills } from '../data/site';
+import Reveal from './Reveal.astro';
+import ContactIcons from './ContactIcons.astro';
+import { encodeEmail } from '../lib/email';
+
+const year = new Date().getFullYear();
+---
+
+<footer id="contact" class="bg-footer text-on-footer">
+  <div class="mx-auto max-w-6xl px-6 py-20 md:px-10 md:py-28">
+    <!-- CTA -->
+    <Reveal>
+      <p class="eyebrow text-on-footer/55">Contact</p>
+      <h2 class="mt-5 max-w-3xl font-serif text-on-footer text-hero leading-[1.04]">
+        Say <span class="italic text-accent">hello.</span>
+      </h2>
+      <p class="mt-8 font-serif text-2xl text-on-footer md:text-3xl">
+        <!-- Address is filled in by revealEmails(); "Email me" is the no-JS fallback. -->
+        <a
+          href="#contact"
+          data-email={encodeEmail(site.email)}
+          data-email-text
+          class="link-underline hover:text-accent"
+        >
+          Email me
+        </a>
+      </p>
+    </Reveal>
+
+    <!-- Supporting detail: education, skills, socials -->
+    <div class="mt-20 grid gap-12 border-t border-on-footer/12 pt-12 md:grid-cols-3">
+      <Reveal>
+        <h3 class="eyebrow text-on-footer/55">Education</h3>
+        <ul class="mt-5 space-y-5">
+          {education.map((e) => (
+            <li>
+              <p class="text-[0.98rem] font-medium text-on-footer">{e.school}</p>
+              <p class="text-sm text-on-footer/70">{e.degree}</p>
+              <p class="mt-1 text-xs text-on-footer/55">{e.period}</p>
+            </li>
+          ))}
+        </ul>
+      </Reveal>
+
+      <Reveal delay={80} class="md:col-span-2">
+        <h3 class="eyebrow text-on-footer/55">Toolkit</h3>
+        <div class="mt-5 space-y-4">
+          {skills.map((s) => (
+            <div class="flex flex-col gap-2 sm:flex-row sm:items-baseline sm:gap-5">
+              <span class="w-28 shrink-0 text-sm text-on-footer/50">{s.group}</span>
+              <span class="text-[0.95rem] leading-relaxed text-on-footer/85">
+                {s.items.join(' · ')}
+              </span>
+            </div>
+          ))}
+        </div>
+      </Reveal>
+    </div>
+
+    <!-- Bottom bar -->
+    <div class="mt-16 flex flex-col gap-4 border-t border-on-footer/12 pt-6 text-sm text-on-footer/55 sm:flex-row sm:items-center sm:justify-between">
+      <p>
+        © {year} {site.name}
+      </p>
+      <ContactIcons linkClass="text-on-footer/70 hover:text-on-footer" />
+      <a href="#top" class="link-underline text-on-footer/80 hover:text-on-footer">
+        Back to top ↑
+      </a>
+    </div>
+  </div>
+</footer>

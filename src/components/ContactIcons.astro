@@ -1,0 +1,50 @@
+---
+// Icon-only row of contact links (email + socials), each with a hover tooltip.
+import { site } from '../data/site';
+import Icon from './Icon.astro';
+import { encodeEmail } from '../lib/email';
+
+interface Props {
+  /** Classes for each link (colour + hover). */
+  linkClass?: string;
+  /** Classes for each SVG (size). */
+  iconClass?: string;
+  class?: string;
+}
+
+const {
+  linkClass = 'text-ink-soft hover:text-accent',
+  iconClass = 'h-5 w-5',
+  class: className = '',
+} = Astro.props;
+
+// The email link ships with an encoded address and a #contact fallback;
+// revealEmails() (src/lib/email.ts) turns it into a mailto: in the browser.
+const links = [
+  { label: 'Email', url: '#contact', icon: 'email' as const, email: encodeEmail(site.email) },
+  ...site.socials.map((s) => ({ ...s, email: undefined })),
+];
+---
+
+<div class:list={['flex items-center gap-4', className]}>
+  {links.map((l) => {
+    const external = l.url.startsWith('http');
+    return (
+      <a
+        href={l.url}
+        title={l.label}
+        aria-label={l.label}
+        data-email={l.email}
+        data-email-label={l.email ? '' : undefined}
+        class:list={[
+          'inline-flex transition-[color,transform] duration-200 hover:-translate-y-0.5',
+          linkClass,
+        ]}
+        target={external ? '_blank' : undefined}
+        rel={external ? 'noopener noreferrer' : undefined}
+      >
+        <Icon name={l.icon} class={iconClass} />
+      </a>
+    );
+  })}
+</div>
