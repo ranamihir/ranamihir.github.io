@@ -1,0 +1,60 @@
+---
+// Small "app icon" tile for an employer or school, shown beside its name in the
+// Experience section. Meta and Tripadvisor use their glyphs from Icon.astro.
+// NYU is its torch mark (the torch from NYU's logo, drawn white on NYU violet).
+// IIT Roorkee is its full-colour seal (public/logos/iitr-seal.svg, svgo-optimized),
+// loaded as an <img> so its ~50 KB of paths stay out of the page HTML.
+import Icon from './Icon.astro';
+import type { OrgLogoName } from '../data/experience';
+
+interface Props {
+  name: OrgLogoName;
+  class?: string;
+}
+
+// NYU torch, from NYU's logo, on a 52×52 grid matching the mark's square.
+const NYU_TORCH =
+  'M 24.202 45.919 C 24.259 46.287 25.054 46.461 25.227 45.919 L 27.047 31.511 L 22.634 31.511 L 24.209 45.919 Z M 28.586 30.471 L 28.586 28.289 L 21.082 28.289 L 21.082 30.471 Z M 26.419 27.221 C 35.931 27.567 36.609 18.893 36.646 15.651 C 36.646 15.463 36.552 15.448 36.508 15.578 C 36.227 16.258 34.992 18.677 31.561 20.143 C 28.499 21.457 26.657 24.44 26.332 27.119 C 26.318 27.184 26.376 27.221 26.419 27.221 M 25.372 26.592 C 26.874 19.37 32.752 19.197 33.28 17.824 C 34.103 15.687 32.601 11.895 32.218 11.447 C 32.182 11.397 32.124 11.433 32.11 11.469 C 31.316 13.217 30.023 14.885 29.077 15.651 C 27.741 16.727 22.642 20.511 25.249 26.592 C 25.278 26.664 25.357 26.65 25.372 26.592 M 24.332 26.882 C 21.147 20.078 27.517 15.679 28.557 14.726 C 28.701 14.596 28.665 14.466 28.672 14.314 C 28.672 12.169 27.444 8.703 27.04 8.204 C 26.982 8.125 26.932 8.161 26.91 8.241 C 26.368 10.357 23.465 13.506 22.88 14.191 C 17.962 20.041 19.088 23.602 24.223 26.961 C 24.288 27.004 24.368 26.961 24.332 26.881 M 22.909 27.118 C 17.579 23.941 18.113 19.398 20.323 16.061 C 20.373 15.989 20.388 15.873 20.373 15.736 C 20.28 14.942 19.413 12.934 19.053 12.386 C 18.958 12.248 18.879 12.256 18.872 12.356 C 18.842 13.266 17.81 15.541 16.228 18.163 C 14.546 20.951 14.546 27.003 22.894 27.241 C 22.974 27.241 22.996 27.161 22.916 27.118 Z';
+
+type Tile = { bg: string; fg?: string } & (
+  { glyph: 'meta' | 'tripadvisor' } | { path: string; viewBox: string } | { img: string }
+);
+
+const tiles: Record<OrgLogoName, Tile> = {
+  meta: { bg: 'bg-meta', fg: 'text-white', glyph: 'meta' },
+  tripadvisor: { bg: 'bg-[#34e0a1]', fg: 'text-black', glyph: 'tripadvisor' },
+  nyu: { bg: 'bg-[#57068c]', fg: 'text-white', path: NYU_TORCH, viewBox: '0 0 52 52' },
+  iitr: { bg: 'bg-white', img: '/logos/iitr-seal.svg' },
+};
+
+const { name, class: className = '' } = Astro.props;
+const tile = tiles[name];
+---
+
+<span
+  class:list={[
+    'inline-flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-[0.6rem] ring-1 ring-black/8 ring-inset',
+    tile.bg,
+    tile.fg,
+    className,
+  ]}
+  aria-hidden="true"
+>
+  {'glyph' in tile ? (
+    <Icon name={tile.glyph} class="h-5 w-5" />
+  ) : 'path' in tile ? (
+    <svg viewBox={tile.viewBox} fill="currentColor" class="h-full w-full">
+      <path d={tile.path} />
+    </svg>
+  ) : (
+    <img
+      src={tile.img}
+      alt=""
+      width="34"
+      height="34"
+      loading="lazy"
+      decoding="async"
+      class="h-[2.15rem] w-[2.15rem]"
+    />
+  )}
+</span>

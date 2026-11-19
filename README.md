@@ -114,3 +114,6 @@ frames (`src/assets/playground/`): they come from [Pixabay](https://pixabay.com/
 under the [Pixabay Content License](https://pixabay.com/service/license-summary/),
 trimmed, cropped, and re-encoded, and each card credits its creator with a link
 to the original.
+
+The company and university logos in the Experience section (Meta, Tripadvisor,
+NYU, IIT Roorkee) are trademarks of their owners, shown only to identify them.

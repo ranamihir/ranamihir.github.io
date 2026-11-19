@@ -44,6 +44,12 @@ export const site = {
 export const education = [
   {
     school: 'New York University',
+    // Shorter name for the Experience section's education rows.
+    short: 'NYU',
+    url: 'https://cds.nyu.edu',
+    logo: 'nyu',
+    // Optional one-line pointer under the degree in the Experience section.
+    aside: { text: 'Some of my research from there is just below', href: '#projects' },
     degree: 'M.S. in Data Science',
     detail:
       'GPA 3.95 / 4.0 · Teaching Assistant for Deep Learning (Yann LeCun), Computer Vision (Rob Fergus), and Machine Learning (David Rosenberg).',
@@ -65,6 +71,9 @@ export const education = [
   },
   {
     school: 'Indian Institute of Technology (IIT), Roorkee',
+    short: 'IIT Roorkee',
+    url: 'https://www.iitr.ac.in',
+    logo: 'iitr',
     degree: 'B.Tech, Mechanical Engineering · Minor in Computer Science',
     detail: 'GPA 4.0 / 4.0.',
     location: 'Roorkee, India',

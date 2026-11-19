@@ -3,6 +3,7 @@
 // floating "index card" with its headline result (fine pointers only); click
 // or tap a row to expand the write-up (native <details>, works without JS).
 import { projects } from '../data/projects';
+import { skills } from '../data/site';
 import Reveal from './Reveal.astro';
 import ArrowUpRight from './ArrowUpRight.astro';
 
@@ -137,6 +138,19 @@ const tilts = [-3, 2.5, -1.5, 3];
         </li>
       ))}
     </ol>
+
+    <!-- Toolkit: what I work with now, not just at NYU. Same rail as Experience. -->
+    <Reveal class="mt-16 grid gap-6 md:mt-20 md:grid-cols-[0.8fr_2fr] md:gap-12">
+      <h3 class="eyebrow md:pt-1">Toolkit</h3>
+      <div class="space-y-4">
+        {skills.map((s) => (
+          <div class="flex flex-col gap-1.5 sm:flex-row sm:items-baseline sm:gap-5">
+            <span class="w-28 shrink-0 text-sm text-ink-faint">{s.group}</span>
+            <span class="text-[0.98rem] leading-relaxed text-ink-soft">{s.items.join(' · ')}</span>
+          </div>
+        ))}
+      </div>
+    </Reveal>
   </div>
 
   <!-- Floating index card (decorative; same info is in each expanded row) -->

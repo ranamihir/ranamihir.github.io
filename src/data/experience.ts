@@ -1,5 +1,8 @@
 // Curated experience: impact-first, not a resume dump.
 
+// Tile shown beside a company or school name (see src/components/OrgLogo.astro).
+export type OrgLogoName = 'meta' | 'tripadvisor' | 'nyu' | 'iitr';
+
 export interface Role {
   title: string;
   period?: string;
@@ -9,6 +12,7 @@ export interface Experience {
   company: string;
   location: string;
   url?: string;
+  logo?: OrgLogoName;
   period: string;
   roles: Role[];
   // Prose paragraphs, rendered as-is (no bullets).
@@ -21,6 +25,7 @@ export const experience: Experience[] = [
     company: 'Meta',
     location: 'New York, NY',
     url: 'https://about.meta.com',
+    logo: 'meta',
     period: '2026 – Present',
     roles: [{ title: 'Machine Learning Engineer' }],
     about: [
@@ -32,6 +37,7 @@ export const experience: Experience[] = [
     company: 'Tripadvisor',
     location: 'New York, NY',
     url: 'https://www.tripadvisor.com',
+    logo: 'tripadvisor',
     period: '2019 – 2026',
     roles: [{ title: 'Principal Machine Learning Engineer' }],
     about: [
