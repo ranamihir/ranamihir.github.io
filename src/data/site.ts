@@ -12,8 +12,7 @@ export const site = {
   role: `${title} at ${employer}`,
   // Hero greeting + a playful aside, rendered as the page's <h1>.
   greeting: 'Hi, I’m Mihir.',
-  aside:
-    '(I help decide what shows up in your feed. You’re welcome, or I’m sorry, depending on your feed.)',
+  aside: 'I help decide what shows up in your feed. (You’re welcome, or I’m sorry?)',
   // Conversational bio. Wrap phrases in **double asterisks** to bold them.
   bio: [
     'I’m a machine learning engineer at **Meta**, working on the ranking models that decide which **Threads** posts land in your Instagram and Facebook feeds.',
