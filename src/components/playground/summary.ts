@@ -138,7 +138,7 @@ export function buildSummary(
       el(
         'p',
         'mt-2 text-[0.75rem] text-ink-faint',
-        'That’s why a tap only counts half here, and ❤️s and watching count in full.',
+        'That’s why a tap only counts half here, and a ❤️ counts the most.',
       ),
     );
     box.append(what);

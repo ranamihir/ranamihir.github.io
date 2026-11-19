@@ -35,6 +35,11 @@ const PARTS = [
 ] as const;
 const partValue = (s: Score, key: (typeof PARTS)[number]['key']) =>
   key === 'explore' ? s.explore : s.parts[key];
+/** A legend label's value-model weight, when it isn't 1: " (×1.5)", " (×½)". */
+const weightTag = (key: (typeof PARTS)[number]['key']) => {
+  const w = key === 'explore' ? 1 : WEIGHTS[key];
+  return w === 1 ? '' : ` (×${w === 0.5 ? '½' : w})`;
+};
 
 export interface Story {
   /** The card that was just left. */
@@ -208,7 +213,7 @@ export function createDashboard(feed: Feed, bySlug: Map<string, PlaygroundCard>,
           : `Its guess, ${Math.round(s.p[p.key] * 100)}%, × ${WEIGHTS[p.key]}`;
       li.append(
         el('span', `h-2 w-2 shrink-0 rounded-full ${p.fill}`),
-        el('span', 'truncate text-ink-soft', p.label + (p.key === 'open' ? ' (½)' : '')),
+        el('span', 'truncate text-ink-soft', p.label + weightTag(p.key)),
         el('span', 'ml-auto text-ink tabular-nums', points(v)),
       );
       legend.append(li);

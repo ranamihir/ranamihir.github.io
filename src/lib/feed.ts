@@ -22,12 +22,14 @@ export type Task = (typeof TASKS)[number];
 export type Predictions = Record<Task, number>;
 
 /**
- * The value model: how much each prediction counts toward a card's score.
- * Watching counts as much as a ❤️ (on a feed like Reels most people never tap
+ * The value model: how much each prediction counts toward a card's score (a
+ * weighted sum). A ❤️ counts most: it's explicit, something you chose to do.
+ * Watching still counts in full (on a feed like Reels most people never tap
  * anything); opening counts half: it's curiosity, and it's what clickbait
  * exploits. A feed that paid mostly for taps would fill up with clickbait.
+ * (Simulations: tap weights above ~0.55 let bait win slots on its own.)
  */
-export const WEIGHTS: Predictions = { like: 1, watch: 1, open: 0.5 };
+export const WEIGHTS: Predictions = { like: 1.5, watch: 1, open: 0.5 };
 /** The value model of a feed that's paid only for taps: what the summary's "what if" ranks with. */
 export const TAP_WEIGHTS: Predictions = { like: 0, watch: 0, open: 1 };
 

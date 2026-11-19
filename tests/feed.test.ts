@@ -247,11 +247,19 @@ describe('createFeed', () => {
       }
       const w = new Map(feed.learned().map((f) => [f.key, f.weight]));
       expect(w.get('meat'), `seed ${seed}`).toBeLessThan(0);
-      expect(w.get('seafood'), `seed ${seed}`).toBeLessThan(0);
+      // Seafood too, if it came up at all: after one skipped steak, the feed may
+      // never need to show a vegetarian any, and then it claims nothing either way.
+      const sawSeafood = seen.some((s) => (byslug.get(s)!.features.seafood ?? 0) > 0);
+      if (sawSeafood) expect(w.get('seafood'), `seed ${seed}`).toBeLessThan(0);
+      else expect(w.get('seafood'), `seed ${seed}`).toBe(0);
       // Veggies beat both. (Not necessarily positive: a vegetarian who only ever
-      // saw shrimp-and-tofu as their "veggie" card has every reason to doubt it.)
+      // saw shrimp-and-tofu as their "veggie" card has every reason to doubt it.
+      // And not necessarily seen: a session of desserts and noodles knows
+      // nothing about veggies or seafood, so neither beats the other.)
       expect(w.get('veggie')!, `seed ${seed}`).toBeGreaterThan(w.get('meat')!);
-      expect(w.get('veggie')!, `seed ${seed}`).toBeGreaterThan(w.get('seafood')!);
+      if (sawSeafood) {
+        expect(w.get('veggie')!, `seed ${seed}`).toBeGreaterThan(w.get('seafood')!);
+      }
       // The back half of the session is mostly meat-free. (The model stops
       // showing meat early, so it rarely needs to learn more than that.)
       expect(seen.slice(6).filter(animal).length, `seed ${seed}`).toBeLessThanOrEqual(2);
