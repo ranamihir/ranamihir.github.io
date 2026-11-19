@@ -69,36 +69,20 @@ const touch = '[@media(hover:hover)]:hidden';
   <div class="mx-auto max-w-6xl px-6 py-20 md:px-10 md:py-28">
     <Reveal class="mb-12 md:mb-16">
       <p class="eyebrow">Playground</p>
-      <div class="mt-4 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
-        <div>
-          <h2 class="max-w-2xl font-serif text-display">Train your own feed.</h2>
-          <div class="mt-5 max-w-2xl space-y-4 text-[1.05rem] leading-relaxed text-ink-soft">
-            <p>
-              Every time you open a feed, models predict a dozen things about each post: will you
-              like it, share it, linger on it, hide it? A{' '}
-              <strong class="font-semibold text-ink">value model</strong> weighs those predictions
-              into one score, and the score sets the order. Choosing the weights is really choosing
-              what the feed is for: if you reward only taps, it will likely fill up with pure
-              clickbait; reward lasting interest and it’ll be worth coming back to.
-            </p>
-            <p>
-              At Meta, I work on both: building the models that make those predictions and the value
-              models, for the Threads posts in your Instagram and Facebook feeds. To give you a
-              taste, here’s a tiny version: swipe through a few dishes and watch it learn!
-            </p>
-          </div>
-        </div>
-        <p class="shrink-0 text-sm text-ink-faint md:max-w-[15rem] md:text-right">
-          Runs entirely in your browser. Nothing is saved or sent anywhere. Clips from{' '}
-          <a
-            href="https://pixabay.com/videos/"
-            target="_blank"
-            rel="noopener noreferrer"
-            class="link-underline text-ink-soft"
-          >
-            Pixabay
-          </a>
-          .
+      <h2 class="mt-4 max-w-2xl font-serif text-display">Train your own feed.</h2>
+      <div class="mt-5 space-y-4 text-[1.05rem] leading-relaxed text-ink-soft">
+        <p>
+          Every time you open a feed, models predict a dozen things about each post: will you like
+          it, share it, linger on it, hide it? A{' '}
+          <strong class="font-semibold text-ink">value model</strong> weighs those predictions into
+          one score, and the score sets the order. Choosing the weights is really choosing what the
+          feed is for: if you reward only taps, it will likely fill up with pure clickbait; reward
+          lasting interest and it’ll be worth coming back to.
+        </p>
+        <p>
+          At Meta, I work on both: building the models that make those predictions and the value
+          models, for the Threads posts in your Instagram and Facebook feeds. To give you a taste,
+          here’s a tiny version: swipe through a few dishes and watch it learn!
         </p>
       </div>
     </Reveal>
@@ -114,83 +98,93 @@ const touch = '[@media(hover:hover)]:hidden';
         hidden
       >
         <!-- Launcher: Play, then Resume, then the summary once a session is done -->
-        <div class="relative mx-auto aspect-[4/5] w-full max-w-[22rem]">
-          <div
-            class="absolute inset-0 translate-y-3 scale-[0.94] rounded-[1.5rem] border border-line bg-paper-2"
-            aria-hidden="true"
-          ></div>
-          <div
-            class="absolute inset-0 translate-y-1.5 scale-[0.97] rounded-[1.5rem] border border-line bg-paper"
-            aria-hidden="true"
-          ></div>
-          <div id="pg-launch" class={tile}>
-            <img
-              src={launchPoster.src}
-              alt=""
-              width="720"
-              height="900"
-              loading="lazy"
-              decoding="async"
-              class="absolute inset-0 h-full w-full object-cover"
-            />
+        <div class="mx-auto w-full max-w-[22rem]">
+          <div class="relative aspect-[4/5] w-full">
             <div
-              id="pg-launch-cover"
-              class="absolute inset-0 flex flex-col items-center justify-center bg-black/65 p-6 text-center text-white"
-            >
-              <p id="pg-launch-title" class="font-serif text-[1.65rem] leading-tight">
-                Ready to train your feed?
-              </p>
-              <p id="pg-launch-sub" class="mt-2 text-sm text-white/75">
-                10 short clips. The model learns from everything you do.
-              </p>
-              <button
-                id="pg-play"
-                type="button"
-                class="mt-6 rounded-full bg-accent px-7 py-2.5 text-sm font-semibold text-paper shadow-lg transition-transform hover:scale-[1.03] focus-visible:outline-white"
+              class="absolute inset-0 translate-y-3 scale-[0.94] rounded-[1.5rem] border border-line bg-paper-2"
+              aria-hidden="true"
+            ></div>
+            <div
+              class="absolute inset-0 translate-y-1.5 scale-[0.97] rounded-[1.5rem] border border-line bg-paper"
+              aria-hidden="true"
+            ></div>
+            <div id="pg-launch" class={tile}>
+              <img
+                src={launchPoster.src}
+                alt=""
+                width="720"
+                height="900"
+                loading="lazy"
+                decoding="async"
+                class="absolute inset-0 h-full w-full object-cover"
+              />
+              <div
+                id="pg-launch-cover"
+                class="absolute inset-0 flex flex-col items-center justify-center bg-black/65 p-6 text-center text-white"
               >
-                <span aria-hidden="true">▶</span> <span id="pg-play-label">Play</span>
-              </button>
-              <button
-                id="pg-restart"
-                type="button"
-                class="mt-3 text-sm text-white/75 underline decoration-white/40 underline-offset-4 hover:text-white"
-                hidden
-              >
-                Start over
-              </button>
-              <p class="mt-6 text-[0.75rem] text-white/60">
-                Opens full screen. <span class={hover}>Press Esc or ✕ to exit.</span>
-                <span class={touch}>Tap ✕ to exit.</span>
-              </p>
+                <p id="pg-launch-title" class="font-serif text-[1.65rem] leading-tight">
+                  Ready to train your feed?
+                </p>
+                <p id="pg-launch-sub" class="mt-2 text-sm text-white/75">
+                  10 short clips. The model learns from everything you do.
+                </p>
+                <button
+                  id="pg-play"
+                  type="button"
+                  class="mt-6 rounded-full bg-accent px-7 py-2.5 text-sm font-semibold text-paper shadow-lg transition-transform hover:scale-[1.03] focus-visible:outline-white"
+                >
+                  <span aria-hidden="true">▶</span> <span id="pg-play-label">Play</span>
+                </button>
+                <button
+                  id="pg-restart"
+                  type="button"
+                  class="mt-3 text-sm text-white/75 underline decoration-white/40 underline-offset-4 hover:text-white"
+                  hidden
+                >
+                  Start over
+                </button>
+                <p class="mt-6 text-[0.75rem] text-white/60">
+                  Opens full screen. <span class={hover}>Press Esc or ✕ to exit.</span>
+                  <span class={touch}>Tap ✕ to exit.</span>
+                </p>
+              </div>
             </div>
           </div>
+          <!-- Privacy + credit, under the feed window. mt clears the stacked-card offset. -->
+          <p class="mt-7 text-center text-sm text-ink-faint">
+            Runs entirely in your browser. Nothing is saved or sent anywhere. Clips from{' '}
+            <a
+              href="https://pixabay.com/videos/"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="link-underline text-ink-soft"
+            >
+              Pixabay
+            </a>
+            .
+          </p>
         </div>
 
         <div class="max-w-xl space-y-3 text-[0.95rem] leading-relaxed text-ink-soft">
           <h3 class="font-serif text-2xl text-ink">How it works</h3>
           <p>
-            Each dish is tagged with nine features (meat, seafood, spicy, sweet, and so on). Three
-            tiny logistic regressions learn from you. One predicts whether you’ll{' '}
-            <strong class="font-semibold text-ink">like</strong> a dish (a ❤️), one whether you’ll{' '}
-            <strong class="font-semibold text-ink">keep watching</strong> (at least twice as long as
-            your quick skips), and one whether you’ll{' '}
-            <strong class="font-semibold text-ink">open</strong> it. Every clip you leave is one
-            step of gradient descent for each: the same math as the ball rolling around at the top
-            of this page.
+            Each dish has nine tags (meat, seafood, spicy, sweet, and so on). Three tiny models
+            learn from you: one guesses whether you’ll{' '}
+            <strong class="font-semibold text-ink">like</strong> it, one whether you’ll{' '}
+            <strong class="font-semibold text-ink">keep watching</strong> (twice as long as your
+            quick skips), and one whether you’ll{' '}
+            <strong class="font-semibold text-ink">open</strong> it. Each clip you swipe past nudges
+            all three, one step of gradient descent, like the ball at the top of this page.
           </p>
           <p>
-            The value model adds the three predictions up (a tap counts half), plus a small bonus
-            for flavors it hasn’t shown you yet, so it doesn’t get stuck on your first ❤️. The
-            highest score is your next clip. Before each one, it also guesses whether you’ll ❤️ it
-            or keep watching, and keeps score.
+            The value model adds up the three guesses, plus a small bonus for flavors you haven’t
+            seen yet so it doesn’t get stuck on your first ❤️. The highest score plays next.
           </p>
           <p>
-            Why does a tap count only half? To avoid clickbait. The models know before you swipe (a
-            real feed learns it from everyone) that bait gets tapped but rarely enjoyed. Pay a feed
-            for taps and it fills up with bait; this one almost never picks it. Real feeds still
-            give new posts a trial view to see how they land, so one will turn up, and then a
-            quality filter steps in. Real feeds use thousands of features and models trained on
-            billions of examples, but the basic idea is the same.
+            A tap counts only half, because clickbait gets tapped but rarely enjoyed. Reward taps
+            and the feed fills up with bait. New posts still get a trial view, so one bait clip will
+            show up, and then a quality filter steps in. Real feeds use thousands of features and
+            billions of examples, but the idea is the same.
           </p>
         </div>
       </div>
