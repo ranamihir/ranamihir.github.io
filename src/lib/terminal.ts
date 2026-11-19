@@ -152,6 +152,7 @@ export function createShell(data: TerminalData, deps: ShellDeps) {
     ['fun-facts', 'things a résumé won’t tell you'],
     ['theme [dark|light|system]', 'switch the site theme'],
     ['lr [value|reset]', 'tune the optimizer up top'],
+    ['play', 'train your own feed'],
     ['ls, cat, history, clear', 'the usual'],
   ];
 
@@ -332,6 +333,17 @@ export function createShell(data: TerminalData, deps: ShellDeps) {
       L(dim('(Kidding.)')),
     ],
     rm: () => [L('Let’s not.')],
+    play: () => [
+      L(acc('Train your own feed.'), ' Swipe on a few dishes, and a tiny recommender learns'),
+      L('your taste live: what it predicts, how it ranks, and what it gets wrong.'),
+      L(
+        dim('Head to the '),
+        a('playground', '#playground'),
+        dim(', or '),
+        a('jump straight in', '#play'),
+        dim('.'),
+      ),
+    ],
     exit: () => [L('Nice try. You can always scroll, though.')],
     vim: () => [L('Bold choice. This shell is read-only.')],
   };
@@ -348,6 +360,10 @@ export function createShell(data: TerminalData, deps: ShellDeps) {
     emacs: 'vim',
     nano: 'vim',
     cls: 'clear',
+    feed: 'play',
+    game: 'play',
+    playground: 'play',
+    swipe: 'play',
     man: 'help',
     '?': 'help',
   };
@@ -365,6 +381,7 @@ export function createShell(data: TerminalData, deps: ShellDeps) {
     'fun-facts',
     'theme',
     'lr',
+    'play',
     'ls',
     'cat',
     'history',

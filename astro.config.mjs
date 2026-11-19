@@ -24,6 +24,8 @@ export default defineConfig({
       directives: [
         "default-src 'none'",
         "img-src 'self'",
+        // The playground's clips (public/playground/*.mp4).
+        "media-src 'self'",
         "font-src 'self'",
         "manifest-src 'self'",
         "base-uri 'none'",

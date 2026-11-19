@@ -6,6 +6,7 @@ import Hero from '../components/Hero.astro';
 import Terminal from '../components/Terminal.astro';
 import Experience from '../components/Experience.astro';
 import Projects from '../components/Projects.astro';
+import Playground from '../components/Playground.astro';
 import Footer from '../components/Footer.astro';
 import { site, education } from '../data/site';
 import { experience } from '../data/experience';
@@ -43,6 +44,7 @@ const personJson = JSON.stringify(person).replace(/</g, '\\u003c');
     <Projects />
     <!-- The hero's "Prefer a terminal?" link jumps here. -->
     <Terminal />
+    <Playground />
   </main>
   <Footer />
 </BaseLayout>

@@ -21,6 +21,14 @@
   --color-chip: #fdfcfa;
   --color-meta: #0866ff; /* Meta brand blue (logo only) */
 
+  /* Playground score bars: one hue per part of the score. Validated as a
+     categorical palette (adjacent CVD ΔE ≥ 20) on paper, light and dark;
+     "new" is a deliberate neutral: it's a bonus, not a prediction. */
+  --color-score-like: #b8472d;
+  --color-score-watch: #2f6fb8;
+  --color-score-tap: #b07a10;
+  --color-score-new: #c9c3ba;
+
   /* Footer stays dark in both themes (deeper than the page in dark mode). */
   --color-footer: #191817;
   --color-on-footer: #faf9f6;
@@ -72,6 +80,10 @@
   --color-accent-soft: #3b2620;
   --color-chip: #1d1a17;
   --color-meta: #4a8dff;
+  --color-score-like: #d06248;
+  --color-score-watch: #5486d6;
+  --color-score-tap: #b98a1e;
+  --color-score-new: #5a544d;
   --color-footer: #0e0d0c;
   --color-on-footer: #ede8df;
   --color-term: #0f0e0d;
@@ -286,5 +298,59 @@
     .proj-list details[open]::details-content {
       block-size: auto;
     }
+  }
+}
+
+/* While the playground game is open: the page behind it stays put. The gutter
+   keeps the layout from shifting when the scrollbar goes away. */
+html.pg-lock {
+  overflow: hidden;
+  overscroll-behavior: none;
+  scrollbar-gutter: stable;
+}
+.pg-game {
+  overscroll-behavior: contain;
+}
+
+/* Playground how-to: a fingertip sliding up the track (touch), or a scroll
+   wheel turning (mouse). Still for visitors who prefer reduced motion. */
+@media (prefers-reduced-motion: no-preference) {
+  .pg-swipe-dot {
+    animation: pg-swipe 1.8s cubic-bezier(0.22, 1, 0.36, 1) infinite;
+  }
+  .pg-wheel-dot {
+    animation: pg-wheel 1.6s ease-in-out infinite;
+  }
+}
+@keyframes pg-swipe {
+  0% {
+    transform: translateY(16px);
+    opacity: 0;
+  }
+  15% {
+    opacity: 1;
+  }
+  65% {
+    transform: translateY(-16px);
+    opacity: 1;
+  }
+  85%,
+  100% {
+    transform: translateY(-20px);
+    opacity: 0;
+  }
+}
+@keyframes pg-wheel {
+  0% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+  70% {
+    transform: translateY(9px);
+    opacity: 0;
+  }
+  100% {
+    transform: translateY(0);
+    opacity: 0;
   }
 }

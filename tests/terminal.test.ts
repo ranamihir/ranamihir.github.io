@@ -157,6 +157,11 @@ describe('run', () => {
     expect(heroLr).toBe(0.03);
   });
 
+  it('points to the playground', () => {
+    expect(text(shell.run('play').lines)).toContain('Train your own feed');
+    expect(text(shell.run('feed').lines)).toContain('Train your own feed');
+  });
+
   it('signals clear', () => {
     expect(shell.run('clear')).toEqual({ lines: [], clear: true });
   });

@@ -1,0 +1,385 @@
+---
+// "Train your own feed": swipe through short food clips while a tiny
+// recommender learns your taste live. The section is a launcher; the game opens
+// in a full-window <dialog> (Reels-style: swipe up for the next clip). This file
+// builds the card data and the markup; the model is src/lib/feed.ts, the client
+// code src/components/playground/, the cards and clip credits src/data/dishes.ts,
+// and the clips public/playground/.
+import { existsSync } from 'node:fs';
+import { getImage } from 'astro:assets';
+import type { ImageMetadata } from 'astro';
+import { dishes, type PlaygroundCard } from '../data/dishes';
+import { FEATURES, toVector } from '../lib/feed';
+import Reveal from './Reveal.astro';
+
+const photos = import.meta.glob<{ default: ImageMetadata }>('../assets/playground/*.jpg', {
+  eager: true,
+});
+
+const cards: PlaygroundCard[] = await Promise.all(
+  dishes.map(async (d) => {
+    const src = photos[`../assets/playground/${d.slug}.jpg`]?.default;
+    if (!src) throw new Error(`Playground: missing poster src/assets/playground/${d.slug}.jpg`);
+    if (!existsSync(`public/playground/${d.slug}.mp4`))
+      throw new Error(`Playground: missing clip public/playground/${d.slug}.mp4`);
+    const [poster, thumb] = await Promise.all([
+      getImage({ src, width: 800, format: 'webp' }),
+      getImage({ src, width: 96, format: 'webp' }),
+    ]);
+    const strong = FEATURES.filter((f) => (d.features[f.key] ?? 0) >= 1);
+    return {
+      slug: d.slug,
+      name: d.name,
+      cuisine: d.cuisine,
+      blurb: d.blurb,
+      bait: d.bait ?? null,
+      x: toVector(d.features),
+      tags: (strong.length ? strong : FEATURES.filter((f) => d.features[f.key])).map(
+        (f) => `${f.emoji} ${f.label}`,
+      ),
+      video: `/playground/${d.slug}.mp4`,
+      poster: poster.src,
+      thumb: thumb.src,
+      alt: d.clip.alt,
+      credit: d.clip.credit,
+      source: d.clip.source,
+    };
+  }),
+);
+const json = JSON.stringify(cards).replace(/</g, '\\u003c');
+
+// The launcher's still: fewer posts, more dumplings.
+const launchSrc = photos['../assets/playground/dumplings.jpg']?.default;
+if (!launchSrc) throw new Error('Playground: missing launcher poster (dumplings.jpg)');
+const launchPoster = await getImage({ src: launchSrc, width: 720, format: 'webp' });
+
+const panel = 'rounded-2xl border border-line bg-chip p-5';
+const label = 'text-[0.7rem] font-semibold tracking-[0.12em] text-ink-faint uppercase';
+const hint = 'mt-1.5 text-[0.75rem] leading-snug text-ink-faint';
+const tile =
+  'absolute inset-0 overflow-hidden rounded-[1.5rem] border border-line bg-paper-2 shadow-[0_24px_50px_-28px_rgba(25,24,23,0.55)]';
+const navBtn =
+  'rounded-full border border-line bg-chip px-3.5 py-1.5 text-sm text-ink-soft disabled:opacity-40';
+const hover = 'hidden [@media(hover:hover)]:inline';
+const hoverBlock = 'hidden [@media(hover:hover)]:block';
+const touch = '[@media(hover:hover)]:hidden';
+---
+
+<section id="playground" class="border-t border-line bg-paper-2/40">
+  <div class="mx-auto max-w-6xl px-6 py-20 md:px-10 md:py-28">
+    <Reveal class="mb-12 md:mb-16">
+      <p class="eyebrow">Playground</p>
+      <div class="mt-4 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+        <div>
+          <h2 class="max-w-2xl font-serif text-display">Train your own feed.</h2>
+          <div class="mt-5 max-w-2xl space-y-4 text-[1.05rem] leading-relaxed text-ink-soft">
+            <p>
+              Every time you open a feed, models predict a dozen things about each post: will you
+              like it, share it, linger on it, hide it? A{' '}
+              <strong class="font-semibold text-ink">value model</strong> weighs those predictions
+              into one score, and the score sets the order. Choosing the weights is really choosing
+              what the feed is for: if you reward only taps, it will likely fill up with pure
+              clickbait; reward lasting interest and it’ll be worth coming back to.
+            </p>
+            <p>
+              At Meta, I work on both: building the models that make those predictions and the value
+              models, for the Threads posts in your Instagram and Facebook feeds. To give you a
+              taste, here’s a tiny version: swipe through a few dishes and watch it learn!
+            </p>
+          </div>
+        </div>
+        <p class="shrink-0 text-sm text-ink-faint md:max-w-[15rem] md:text-right">
+          Runs entirely in your browser. Nothing is saved or sent anywhere. Clips from{' '}
+          <a
+            href="https://pixabay.com/videos/"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="link-underline text-ink-soft"
+          >
+            Pixabay
+          </a>
+          .
+        </p>
+      </div>
+    </Reveal>
+
+    <noscript>
+      <p class={panel}>This one needs JavaScript: it’s a model that learns as you swipe.</p>
+    </noscript>
+
+    <Reveal delay={100}>
+      <div
+        id="pg"
+        class="grid items-center gap-10 md:grid-cols-[minmax(0,20rem)_minmax(0,1fr)] lg:grid-cols-[minmax(0,22rem)_minmax(0,1fr)] lg:gap-16"
+        hidden
+      >
+        <!-- Launcher: Play, then Resume, then the summary once a session is done -->
+        <div class="relative mx-auto aspect-[4/5] w-full max-w-[22rem]">
+          <div
+            class="absolute inset-0 translate-y-3 scale-[0.94] rounded-[1.5rem] border border-line bg-paper-2"
+            aria-hidden="true"
+          ></div>
+          <div
+            class="absolute inset-0 translate-y-1.5 scale-[0.97] rounded-[1.5rem] border border-line bg-paper"
+            aria-hidden="true"
+          ></div>
+          <div id="pg-launch" class={tile}>
+            <img
+              src={launchPoster.src}
+              alt=""
+              width="720"
+              height="900"
+              loading="lazy"
+              decoding="async"
+              class="absolute inset-0 h-full w-full object-cover"
+            />
+            <div
+              id="pg-launch-cover"
+              class="absolute inset-0 flex flex-col items-center justify-center bg-black/65 p-6 text-center text-white"
+            >
+              <p id="pg-launch-title" class="font-serif text-[1.65rem] leading-tight">
+                Ready to train your feed?
+              </p>
+              <p id="pg-launch-sub" class="mt-2 text-sm text-white/75">
+                10 short clips. The model learns from everything you do.
+              </p>
+              <button
+                id="pg-play"
+                type="button"
+                class="mt-6 rounded-full bg-accent px-7 py-2.5 text-sm font-semibold text-paper shadow-lg transition-transform hover:scale-[1.03] focus-visible:outline-white"
+              >
+                <span aria-hidden="true">▶</span> <span id="pg-play-label">Play</span>
+              </button>
+              <button
+                id="pg-restart"
+                type="button"
+                class="mt-3 text-sm text-white/75 underline decoration-white/40 underline-offset-4 hover:text-white"
+                hidden
+              >
+                Start over
+              </button>
+              <p class="mt-6 text-[0.75rem] text-white/60">
+                Opens full screen. <span class={hover}>Press Esc or ✕ to exit.</span>
+                <span class={touch}>Tap ✕ to exit.</span>
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div class="max-w-xl space-y-3 text-[0.95rem] leading-relaxed text-ink-soft">
+          <h3 class="font-serif text-2xl text-ink">How it works</h3>
+          <p>
+            Each dish is tagged with nine features (meat, seafood, spicy, sweet, and so on). Three
+            tiny logistic regressions learn from you. One predicts whether you’ll{' '}
+            <strong class="font-semibold text-ink">like</strong> a dish (a ❤️), one whether you’ll{' '}
+            <strong class="font-semibold text-ink">keep watching</strong> (at least twice as long as
+            your quick skips), and one whether you’ll{' '}
+            <strong class="font-semibold text-ink">open</strong> it. Every clip you leave is one
+            step of gradient descent for each: the same math as the ball rolling around at the top
+            of this page.
+          </p>
+          <p>
+            The value model adds the three predictions up (a tap counts half), plus a small bonus
+            for flavors it hasn’t shown you yet, so it doesn’t get stuck on your first ❤️. The
+            highest score is your next clip. Before each one, it also guesses whether you’ll ❤️ it
+            or keep watching, and keeps score.
+          </p>
+          <p>
+            Why does a tap count only half? To avoid clickbait. The models know before you swipe (a
+            real feed learns it from everyone) that bait gets tapped but rarely enjoyed. Pay a feed
+            for taps and it fills up with bait; this one almost never picks it. Real feeds still
+            give new posts a trial view to see how they land, so one will turn up, and then a
+            quality filter steps in. Real feeds use thousands of features and models trained on
+            billions of examples, but the basic idea is the same.
+          </p>
+        </div>
+      </div>
+    </Reveal>
+  </div>
+
+  <!-- The game: a full-window dialog. Swipe up for the next clip; ✕, Esc, or Back to exit. -->
+  <dialog
+    id="pg-game"
+    aria-label="Train your own feed"
+    class="pg-game m-0 h-dvh max-h-none w-full max-w-none overflow-hidden border-0 bg-paper p-0 text-ink backdrop:bg-paper"
+  >
+    <img
+      id="pg-backdrop"
+      alt=""
+      aria-hidden="true"
+      class="pointer-events-none absolute inset-0 h-full w-full scale-110 object-cover opacity-20 blur-3xl"
+    />
+    <button
+      id="pg-close"
+      type="button"
+      aria-label="Exit"
+      class="absolute top-[max(0.5rem,env(safe-area-inset-top))] right-3 z-50 grid h-10 w-10 place-items-center rounded-full text-lg text-ink-soft hover:bg-chip hover:text-ink lg:top-5 lg:right-6"
+    >
+      ✕
+    </button>
+
+    <div class="relative mx-auto flex h-full flex-col lg:grid lg:w-fit lg:grid-cols-[min(34rem,calc((100dvh_-_8rem)_*_0.8),calc(100vw_-_30rem))_17rem] lg:grid-rows-[minmax(0,1fr)] lg:gap-14 lg:py-6">
+      <!-- The clip, with progress above and what's next below -->
+      <div id="pg-center" class="flex min-h-0 flex-1 touch-none flex-col lg:row-start-1">
+        <div class="px-4 pt-[max(1.15rem,env(safe-area-inset-top))] pr-16 pb-3 lg:px-0 lg:pt-3 lg:pr-0">
+          <ol id="pg-progress" class="flex h-4 items-center gap-1"></ol>
+        </div>
+
+        <div class="min-h-0 flex-1 px-4 [container-type:size] lg:px-0">
+          <div id="pg-stage" class="relative mx-auto aspect-[4/5] w-[min(100cqw,80cqh)]">
+            <div id="pg-slot" class="absolute inset-0"></div>
+            <p
+              id="pg-guess"
+              class="pointer-events-none absolute top-3 left-3 z-10 rounded-full bg-black/45 px-2.5 py-1 text-[0.75rem] text-white backdrop-blur-sm"
+              aria-hidden="true"
+              hidden
+            ></p>
+
+            <!-- First clip only, if you linger without moving on: a reminder of how to -->
+            <p
+              id="pg-nudge"
+              class="pointer-events-none absolute top-1/2 left-1/2 z-10 -translate-x-1/2 -translate-y-1/2 rounded-full bg-black/60 px-4 py-2 text-sm whitespace-nowrap text-white opacity-0 backdrop-blur-sm"
+              aria-hidden="true"
+            >
+              <span class={touch}>↑ Swipe up for the next clip</span>
+              <span class={hover}>↓ Scroll for the next clip</span>
+            </p>
+
+            <!-- First time only: how to play. Nothing plays or counts until it's dismissed. -->
+            <div
+              id="pg-start"
+              class="absolute inset-0 z-20 flex cursor-pointer flex-col items-center justify-center rounded-[1.5rem] bg-black/75 p-6 text-center text-white backdrop-blur-md"
+            >
+              <!-- How to move on: a fingertip sliding up (touch), or a scroll wheel turning (mouse) -->
+              <div class="mb-5" aria-hidden="true">
+                <span
+                  class={`relative h-16 w-9 rounded-full border-2 border-white/35 ${touch} block`}
+                >
+                  <span class="pg-swipe-dot absolute top-1/2 left-1/2 -mt-[7px] -ml-[7px] h-3.5 w-3.5 rounded-full bg-white"></span>
+                </span>
+                <span
+                  class={`relative h-12 w-8 rounded-full border-2 border-white/35 ${hoverBlock}`}
+                >
+                  <span class="pg-wheel-dot absolute top-2 left-1/2 -ml-[3px] h-2.5 w-1.5 rounded-full bg-white"></span>
+                </span>
+              </div>
+              <p class="font-serif text-[1.5rem] leading-tight">
+                The model learns from everything you do.
+              </p>
+              <ul class="mt-5 space-y-2 text-left text-sm text-white/90">
+                <li>
+                  <span aria-hidden="true">❤️</span> Double-tap (or tap the heart) to like
+                </li>
+                <li>
+                  <span aria-hidden="true">👆</span>{' '}
+                  <span class={touch}>Swipe up for the next clip, down to go back</span>
+                  <span class={hover}>Scroll or press ↓ for the next clip, ↑ to go back</span>
+                </li>
+                <li>
+                  <span aria-hidden="true">⏱️</span> Lingering counts too; quick skips count against
+                </li>
+                <li>
+                  <span aria-hidden="true">👀</span> Tap for details
+                </li>
+              </ul>
+              <button
+                id="pg-start-btn"
+                type="button"
+                class="mt-7 rounded-full bg-accent px-7 py-2.5 text-sm font-semibold text-paper shadow-lg transition-transform hover:scale-[1.03] focus-visible:outline-white"
+              >
+                Got it <span aria-hidden="true">▶</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div class="px-4 pt-4 pb-[max(1rem,env(safe-area-inset-bottom))] lg:px-0 lg:pb-0">
+          <!-- Phones: what the last swipe did, and the rest of the model one tap away -->
+          <div class="flex items-center gap-3 lg:hidden">
+            <p
+              id="pg-story-mini"
+              class="line-clamp-2 min-w-0 flex-1 text-[0.75rem] leading-snug text-ink-soft"
+              aria-hidden="true"
+            ></p>
+            <button
+              id="pg-sheet-btn"
+              type="button"
+              aria-controls="pg-sheet"
+              aria-expanded="false"
+              class="shrink-0 rounded-full border border-line bg-chip/90 px-4 py-2 text-sm text-ink-soft backdrop-blur-sm hover:text-ink"
+            >
+              How it decides
+            </button>
+          </div>
+          <p class="hidden text-center text-[0.75rem] text-ink-faint lg:block">
+            Scroll or <kbd class="font-mono">↑</kbd> <kbd class="font-mono">↓</kbd> to move ·
+            double-click to like · <kbd class="font-mono">Esc</kbd> to exit
+          </p>
+          <!-- Swipes and keys cover everyone else; these are for screen readers and keyboards -->
+          <div class="sr-only flex gap-2 focus-within:not-sr-only focus-within:mt-3">
+            <button id="pg-back-btn" type="button" disabled class={navBtn}>
+              Previous clip
+            </button>
+            <button id="pg-next-btn" type="button" disabled class={navBtn}>
+              Next clip
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- How it decides: the column beside the clip on desktop, a bottom sheet on phones -->
+      <div id="pg-scrim" class="absolute inset-0 z-30 bg-black/40 lg:hidden" hidden></div>
+      <aside
+        id="pg-sheet"
+        aria-label="How it decides"
+        class="max-lg:absolute max-lg:inset-x-0 max-lg:bottom-0 max-lg:z-40 max-lg:max-h-[85dvh] max-lg:translate-y-full max-lg:overflow-y-auto max-lg:overscroll-contain max-lg:rounded-t-3xl max-lg:bg-paper max-lg:px-6 max-lg:pb-[max(1.5rem,env(safe-area-inset-bottom))] max-lg:shadow-2xl motion-safe:transition-transform motion-safe:duration-300 lg:row-start-1 lg:overflow-y-auto lg:overscroll-contain lg:pt-12"
+        inert
+      >
+        <div class="sticky top-0 z-10 -mx-6 mb-2 flex items-center justify-between bg-paper px-6 pt-4 pb-2 lg:hidden">
+          <span class="mx-auto h-1 w-10 rounded-full bg-line" aria-hidden="true"></span>
+          <button
+            id="pg-sheet-close"
+            type="button"
+            aria-label="Close"
+            class="absolute top-2 right-4 grid h-9 w-9 place-items-center rounded-full text-ink-faint hover:text-ink"
+          >
+            ✕
+          </button>
+        </div>
+
+        <div class="space-y-8">
+          <section>
+            <h3 class={label}>What just happened</h3>
+            <div id="pg-story" class="mt-2 text-[0.85rem] leading-snug" aria-live="off"></div>
+          </section>
+
+          <section>
+            <h3 class={label}>Why this clip</h3>
+            <p class={hint}>Each guess × what it’s worth, plus a bonus for something new.</p>
+            <div id="pg-why" class="mt-3"></div>
+          </section>
+
+          <section>
+            <h3 class={label}>Up next</h3>
+            <ol id="pg-next" class="mt-3 space-y-3"></ol>
+            <p id="pg-next-note" class="mt-2 text-[0.75rem] text-ink-faint empty:hidden"></p>
+          </section>
+
+          <section>
+            <h3 class={label}>What it thinks you like</h3>
+            <p class={hint}>Right of the line: into it. Left: not so much.</p>
+            <ul id="pg-taste" class="mt-3 space-y-1.5"></ul>
+          </section>
+        </div>
+      </aside>
+    </div>
+  </dialog>
+
+  <script type="application/json" id="playground-data" set:html={json} />
+</section>
+
+<script>
+  import { initPlayground } from './playground/main';
+
+  initPlayground();
+</script>
