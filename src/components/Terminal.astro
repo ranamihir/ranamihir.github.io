@@ -163,7 +163,7 @@ const chips = [
 
 <script>
   import { decodeEmail } from '../lib/email';
-  import { LR_EVENT } from '../lib/descent';
+  import { DESCENT_MEDIA, LR_EVENT } from '../lib/descent';
   import { createShell, promptLine, type Line, type TerminalData } from '../lib/terminal';
   import { getThemePref, setTheme } from '../lib/theme';
 
@@ -185,6 +185,7 @@ const chips = [
       setTheme(pref, { x: r.left + 40, y: r.top + r.height / 2 });
     },
     setLearningRate: (lr) => document.dispatchEvent(new CustomEvent(LR_EVENT, { detail: lr })),
+    descentRunning: () => window.matchMedia(DESCENT_MEDIA).matches,
   });
 
   // ---- output --------------------------------------------------------------

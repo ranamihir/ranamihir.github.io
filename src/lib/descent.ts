@@ -51,6 +51,8 @@ export const STUCK_STEPS = 30;
 export const LR_RANGE = [1e-5, 100] as const;
 /** Fired on document with the new learning rate in `detail`. */
 export const LR_EVENT = 'descent:lr';
+/** Screens wide enough to run it (Tailwind's md). Phones get a still hero: less motion and battery. */
+export const DESCENT_MEDIA = '(min-width: 48rem)';
 
 const BOWL_DEPTH = 0.3;
 const BOWL_R2 = 0.35 ** 2;

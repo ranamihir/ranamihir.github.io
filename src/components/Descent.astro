@@ -6,23 +6,25 @@
 // The terminal's `lr` command changes the learning rate. Decorative only
 // (aria-hidden, no pointer events); the math lives in src/lib/descent.ts.
 // Reduced motion: one static frame with the full descent path drawn in.
+// Phones (below md, DESCENT_MEDIA) get none of it: the canvas is hidden and nothing runs.
 ---
 
 <canvas
   id="descent"
   aria-hidden="true"
-  class="pointer-events-none absolute inset-0 h-full w-full [mask-image:linear-gradient(to_bottom,transparent,#000_18%,#000_82%,transparent)]"
+  class="pointer-events-none absolute inset-0 hidden h-full w-full md:block [mask-image:linear-gradient(to_bottom,transparent,#000_18%,#000_82%,transparent)]"
 ></canvas>
 <p
   id="descent-stats"
   aria-hidden="true"
-  class="pointer-events-none absolute right-6 bottom-5 hidden font-mono text-[0.7rem] text-ink-faint tabular-nums sm:block md:right-10"
+  class="pointer-events-none absolute right-6 bottom-5 hidden font-mono text-[0.7rem] text-ink-faint tabular-nums md:right-10 md:block"
 ></p>
 
 <script>
   import {
     contours,
     DEFAULT_LR,
+    DESCENT_MEDIA,
     LEVELS,
     loss,
     LR_EVENT,
@@ -40,6 +42,7 @@
   const hero = canvas.parentElement!;
   const ctx = canvas.getContext('2d')!;
   const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const wide = window.matchMedia(DESCENT_MEDIA);
 
   /** Contour grid spacing (CSS px). */
   const CELL = 18;
@@ -76,7 +79,7 @@
   let bumpsAspect = 0;
   function resize() {
     const r = hero.getBoundingClientRect();
-    if (!r.width || !r.height) return false;
+    if (!wide.matches || !r.width || !r.height) return false;
     const first = !W;
     // Keep things where they are on screen (units are hero heights).
     const k = first ? 1 : H / r.height;
@@ -259,7 +262,7 @@
   }
 
   function schedule() {
-    if (raf || !visible || document.hidden || !W) return;
+    if (raf || !wide.matches || !visible || document.hidden || !W) return;
     if (reduced) return drawStill();
     last = performance.now();
     still = 0;

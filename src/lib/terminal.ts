@@ -118,6 +118,8 @@ export interface ShellDeps {
   setTheme: (pref: ThemePref) => void;
   /** Sets the learning rate of the gradient descent behind the hero. */
   setLearningRate?: (lr: number) => void;
+  /** False when the screen is too narrow for the gradient descent to run (phones). */
+  descentRunning?: () => boolean;
   now?: () => Date;
 }
 
@@ -274,6 +276,8 @@ export function createShell(data: TerminalData, deps: ShellDeps) {
     },
     lr: (args) => {
       if (!deps.setLearningRate) return [L('lr: nothing to optimize here.')];
+      if (deps.descentRunning?.() === false)
+        return [L('lr: the optimizer only runs on bigger screens. Try it on a laptop.')];
       if (!args[0])
         return [
           L(dim('learning rate: '), acc(fmtLr(heroLr)), dim(` (default ${fmtLr(DEFAULT_LR)})`)),

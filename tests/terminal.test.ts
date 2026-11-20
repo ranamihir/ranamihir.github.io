@@ -157,6 +157,20 @@ describe('run', () => {
     expect(heroLr).toBe(0.03);
   });
 
+  it('says so when the screen is too narrow for the optimizer', () => {
+    const phone = createShell(data, {
+      decodeEmail: () => '',
+      getThemePref: () => theme,
+      setTheme: () => {},
+      setLearningRate: (lr) => {
+        heroLr = lr;
+      },
+      descentRunning: () => false,
+    });
+    expect(text(phone.run('lr 1').lines)).toContain('only runs on bigger screens');
+    expect(heroLr).toBeUndefined();
+  });
+
   it('points to the playground', () => {
     expect(text(shell.run('play').lines)).toContain('Train your own feed');
     expect(text(shell.run('feed').lines)).toContain('Train your own feed');

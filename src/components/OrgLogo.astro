@@ -21,9 +21,9 @@ type Tile = { bg: string; fg?: string } & (
 );
 
 const tiles: Record<OrgLogoName, Tile> = {
-  // Fixed brand blue: the tile is its own background, so it doesn't need the lighter
-  // dark-mode --color-meta that the bare hero glyph uses for contrast.
-  meta: { bg: 'bg-[#0866ff]', fg: 'text-white', glyph: 'meta' },
+  // Brand blue on white, like Meta's own logo. Fixed colours: the tile is its own
+  // background, so it doesn't need the lighter dark-mode --color-meta the hero glyph uses.
+  meta: { bg: 'bg-white', fg: 'text-[#0866ff]', glyph: 'meta' },
   tripadvisor: { bg: 'bg-[#34e0a1]', fg: 'text-black', glyph: 'tripadvisor' },
   nyu: { bg: 'bg-[#57068c]', fg: 'text-white', path: NYU_TORCH, viewBox: '0 0 52 52' },
   iitr: { bg: 'bg-white', img: '/logos/iitr-seal.svg' },
